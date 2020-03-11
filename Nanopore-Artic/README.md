@@ -4,7 +4,7 @@
 ## RAMPART
 ### Introduction
 First of all we will install RAMPART program. This program will run at the same time of the MinKnow software. It will be displaying the Real-Time coverage of the base-calling, so we can know when to stop the MinIon after having a reliable coverage value.
-***_Credit_: https://artic-network.github.io/rampart/***
+>_Credit_: https://artic-network.github.io/rampart/
 
 Link for more documentation [RAMPART](https://artic.network/ncov-2019/ncov2019-using-rampart.html)
 
@@ -19,7 +19,8 @@ git clone --recursive https://github.com/artic-network/artic-ncov2019.git
 ```
 conda env create -f artic-ncov2019/environment.yml
 ```
-  ***This will take some time as it is going to install all the programs and dependencies required***
+  >This will take some time as it is going to install all the programs and dependencies required
+
   * We found an errore when we tried to install the environment in the cluster due to compiler errors. We solved it doing the following:
   ```
   module load Compilers/gcc-5.5.0
@@ -31,7 +32,7 @@ conda env create -f artic-ncov2019/environment.yml
   ```
 
 * Then we will test if the installation went right:
-  ***In our Nanopore machine is installed in /opt/miniconda3/envs/artic-ncov2019 so every user can run it through conda activate /opt/miniconda3/envs/artic-ncov2019***
+  >In our Nanopore machine is installed in /opt/miniconda3/envs/artic-ncov2019 so every user can run it through conda activate /opt/miniconda3/envs/artic-ncov2019
 ```
 conda activate artic-ncov2019
 rampart --help
@@ -57,7 +58,9 @@ rampart --protocol <path_to_repositories>/artic-ncov2019/rampart --basecalledPat
     * `genome.json`: describes the reference genome of what’s being sequenced.
     * `primers.json`: describes the position of primers across the genome. This file will be used by RAMPART to draw the the amplicons in the coverage plots. If it is not present then no amplicons will be shown in RAMPART.
     * `pipelines.json`: describes the pipelines used for data processing and analysis by RAMPART.
-      ***Ths file is not in the repo***
+      >Ths file is not in the repo
+
     * `run_configuration.json`: contains information about the current run.
-      ***This file is not in the repo***
+      >This file is not in the repo
+
 * Then we have to start a browser introducing in the URL box: _http://localhost:3000/_
