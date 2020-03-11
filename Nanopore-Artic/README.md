@@ -20,6 +20,16 @@ git clone --recursive https://github.com/artic-network/artic-ncov2019.git
 conda env create -f artic-ncov2019/environment.yml
 ```
   ***This will take some time as it is going to install all the programs and dependencies required***
+  * We found an errore when we tried to install the environment in the cluster due to compiler errors. We solved it doing the following:
+  ```
+  module load Compilers/gcc-5.5.0
+  module load Libraries/glibc-2.14
+  CXX=/opt/Compilers/gcc-5.5.0/bin/g++
+  CC=/opt/Compilers/gcc-5.5.0/bin/gcc
+  conda install -c conda-forge binutils
+  pip install git+https://github.com/artic-network/Porechop.git@v0.3.2pre
+  ```
+
 * Then we will test if the installation went right:
   ***In our Nanopore machine is installed in /opt/miniconda3/envs/artic-ncov2019 so every user can run it through conda activate /opt/miniconda3/envs/artic-ncov2019***
 ```
