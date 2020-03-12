@@ -64,3 +64,22 @@ rampart --protocol <path_to_repositories>/artic-ncov2019/rampart --basecalledPat
       >This file is not in the repo
 
 * Then we have to start a browser introducing in the URL box: _http://localhost:3000/_
+## MinIon and MinKnow
+We will set all the MinKnow options as described in [this protocol](https://www.protocols.io/view/ncov-2019-sequencing-protocol-bbmuik6w).
+* Choose flow cell 'FLO-MIN106' from the drop-down menu.
+* Then select the flowcell so a tick appears.
+* Click the 'New Experiment' button in the bottom left of the screen.
+* On the New experiment popup screen, select the running parameters for your experiment from the individual tabs:
+  * Experiment:
+    * Name the run in the experiment field the same as the directory we created for RAMPART.
+    * Leave the sample field blank.
+  * Kit:
+    * Selection: Select LSK109 as there is no option for native barcoding (NBD104).
+  * Run Options:
+    * Set the run length to 6 hours (you can stop the run once sufficient data has been collected as determined using RAMPART).
+  * Basecalling:
+    * Leave basecalling turned but select 'fast basecalling'.
+  * Output:
+    * Remember the location directory.
+    * Reduce Reads per file for FASTQ to 1000.
+  * Start run.
