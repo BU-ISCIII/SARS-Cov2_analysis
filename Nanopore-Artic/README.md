@@ -91,6 +91,20 @@ mkdir ANALYSIS
 cd ANALYSIS
 mkdir 02-artic_pipeline
 ```
+### Basecalling with Guppy
+We have to install Guppy from the Oxfor Nanopore Technologies website. We are going to use the one that does not use GPUs. Then we have to download some libraries for it to work.
+```
+conda create -n guppy
+conda activate guppy
+conda install -c rmg glibc
+cd 00-basecalling
+qrsh -V -cwd ../ont-guppy-cpu/bin/guppy_basecaller -c dna_r9.4.1_450bps_hac_mod.cfg -i ../../RAW/ -s ebola_test_run -r
+```
+> We changed the dna_r9.4.1_450bps_hac_mod.cfg config file with the following:
+  > gpu_runners_per_device              = 0
+  > records_per_fastq                   = 1000
+> We removed -x auto parameter because we don't want it to use GPUs.
+
 ### Activate the ARTIC environment
 ```
 conda activate artic-ncov2019
