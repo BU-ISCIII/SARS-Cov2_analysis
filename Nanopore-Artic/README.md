@@ -1,4 +1,4 @@
-<img src="./BU_ISCIII_logo.png" alt="logo" width="300" align="right"/>
+<img src="../BU_ISCIII_logo.png" alt="logo" width="300" align="right"/>
 
 # Artic pipeline for Nanopore data from SARS-Cov2
 ## RAMPART
