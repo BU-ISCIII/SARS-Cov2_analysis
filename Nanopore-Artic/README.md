@@ -83,3 +83,97 @@ We will set all the MinKnow options as described in [this protocol](https://www.
     * Remember the location directory.
     * Reduce Reads per file for FASTQ to 1000.
   * Start run.
+
+## Artic Bioinformatic pipeline
+### Create directory for the analysis
+```
+mkdir ANALYSIS
+cd ANALYSIS
+mkdir 02-artic_pipeline
+```
+### Activate the ARTIC environment
+```
+conda activate artic-ncov2019
+```
+> We won't run Basecalling with Guppy as we will do it with MinKnow.
+
+### Consensus sequence generation
+This will collect all the FASTQ files that have been created by the basecaller into a single file. We will filter the length of the reads to the ones that are between 400 and 700 to remove chimeric reads.
+> We can use the minimum lengths of the amplicons as the minim length and the maximum length of the amplicons plus 200 as the maximum. I.e. if your amplicons are 300 base pairs, use –min-length 300 –max-length 500.
+```
+artic gather --min-length <amplicon_length> --max-length <amplicon_length+200> --prefix <prefix_gathered_files> --directory <path_to_basecalled_reads>
+```
+> We recomend to put the prefix_gathered_files the name as the run_name because it will be the output fastq file.
+
+### Demultiplexing with Porechop
+This step is mandatory.
+```
+artic demultiplex --threads 4 <prefix_gathered_files>.fastq
+```
+> This is running porechop as: porechop --verbosity 2 --untrimmed -i \"%s\" -b %s --native_barcodes --discard_middle --require_two_barcodes --barcode_threshold 80 --threads %s --check_reads 10000 --barcode_diff 5 > %s.demultiplexreport.txt" % (args.fasta, tmpdir, args.threads, args.fasta))
+  > -verbosity 2: shows the actual trimmed/split sequences for each read (described more below).
+  > --untrimmed: Bin reads but do not trim them
+  > -i: imput reads
+  > -b: Reads will be binned based on their barcode and saved to separate files in this directory (incompatible with --output). The program creates a temporary directory to store this files and then removes it after renameming the output files.
+  > --native_barcodes: Only attempts to match the 24 native barcodes.
+  > --discard_middle: Reads with middle adapters will be discarded (default: reads with middle adapters are split) (required for reads to be used with Nanopolish).
+  > --require_two_barcodes: Reads will only be put in barcode bins if they have a strong match for the barcode on both their start and end (default: a read can be binned with a match at its start or end).
+  > --barcode_threshold: A read must have at least this percent identity to a barcode to be binned (default: 75.0).
+  > --check_reads: This many reads will be aligned to all possible adapters to determine which adapter sets are present (default: 10000).
+  > --barcode_diff: If the difference between a read's best barcode identity and its second-best barcode identity is less than this value, it will not be put in a barcode bin (to exclude cases which are too close to call)(default: 5.0).
+
+### Create nanopolish index
+We only have to do this once per sequencing run.
+```
+nanopolish index -s run_name_sequencing_summary.txt -d <path_to_fast5> <prefix_gathered_files>.fastq
+```
+> nanopolish index: Build an index mapping from basecalled reads to the signals measured by the sequencer
+> -s: the sequencing summary file from albacore, providing this option will make indexing much faster.
+> -d path to the directory containing the raw ONT signal files. This option can be given multiple times.
+
+### Run the MinION pipeline
+We have to run this command once for each of the barcode file.
+```
+artic minion --normalise 200 --threads 4 --scheme-directory ~/artic-ncov2019/primer-schemes --read-file run_name_pass_<barcode_ID>.fastq --nanopolish-read-file <prefix_gathered_files>.fastq nCoV-2019/V1 <samplename_for_barcode_ID>
+```
+> --normalise: Normalise down to moderate coverage to save runtime.
+> --scheme-directory: path to scheme-directory that is included in the github repository. This folder contains:
+> --read-file: path to the fastq file demultiplexed by Porechop for ONE barcode.
+> --nanopolish-read-file: path to the gathered fastq file thas has been indexed with nanopolish.
+> nCoV-2019/V1: path to the version of the primer-schemes we are going to use.
+  > nCoV-2019.log
+  > nCoV-2019.pdf
+  > nCoV-2019.pickle
+  > nCoV-2019.reference.fasta: MN908947.3 (Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1, complete genome)
+  > nCoV-2019.scheme.bed
+  > nCoV-2019.svg
+  > nCoV-2019.tsv
+  > nCoV-2019_SMARTplex.tsv
+> <samplename_for_barcode_ID>: name of the sample that is identified with the barcode_ID.
+
+**Output files:**
+* <samplename_for_barcode_ID>.primertrimmed.bam
+  * BAM file for visualisation after primer-binding site trimming
+* <samplename_for_barcode_ID>.vcf
+  * Detected variants in VCF format.
+* <samplename_for_barcode_ID>.variants.tab
+  * Detected variants.
+* <samplename_for_barcode_ID>.consensus.fasta
+  * Consensus sequence
+
+
+If we would want to put all the consensus sequences in one file:
+```
+cat *.consensus.fasta > <output_consensus_genomes>.fasta
+```
+
+### Visualize genomes in Tablet
+* Open a new terminal:
+  ```
+  conda activate tablet
+  tablet
+  ```
+* Go to "Open Assembly"
+  * Load the BAM as the first file
+  * Load the reference file as the second file: artic-ncov2019/primer_schemes/nCoV-2019/V1/nCoV-2019.reference.fasta (MN908947.3)
+  * Select variants mode in Color Schemes for ease of viewing variants.
