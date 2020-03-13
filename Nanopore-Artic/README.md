@@ -98,9 +98,9 @@ conda create -n guppy
 conda activate guppy
 conda install -c rmg glibc
 cd 00-basecalling
-qrsh -V -cwd ../ont-guppy-cpu/bin/guppy_basecaller -c dna_r9.4.1_450bps_hac_mod.cfg -i ../../RAW/ -s ebola_test_run -r
+qrsh -V -cwd <path_to_guppy_basecaller> -c dna_r9.4.1_450bps_hac.cfg -i <path_to_nanopore_output_folder> -s <output_name> -r
 ```
-> We changed the dna_r9.4.1_450bps_hac_mod.cfg config file with the following:
+> We changed the ont-guppy-cpu/data/dna_r9.4.1_450bps_hac.cfg config file with the following:
   > gpu_runners_per_device              = 0
   > records_per_fastq                   = 1000
 > We removed -x auto parameter because we don't want it to use GPUs.
