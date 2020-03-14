@@ -85,6 +85,7 @@ We will set all the MinKnow options as described in [this protocol](https://www.
   * Start run.
 
 ## Artic Bioinformatic pipeline
+We are going to follow the [Artic Bioinformatic pipeline](https://artic.network/ncov-2019/ncov2019-bioinformatics-sop.html) to analyze this data.
 ### Create directory for the analysis
 ```
 mkdir ANALYSIS
