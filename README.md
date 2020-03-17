@@ -3,7 +3,7 @@
 # SARS-Cov2_analysis_pipeline
 ## Introduction
 This repo will contain all the information we can collect about the bioinformatics analysis of SARS-Cov2. We will try to include:
-1. **General information about the virus:** genomics, epidemiology, molecular mechanisms,etc
+1. **[General information about the virus](https://github.com/BU-ISCIII/SARS-Cov2_analysis/wiki/General-information):** genomics, epidemiology, molecular mechanisms,etc
 2. **Data resources:** summary of resources for covid19 (raw data, genomes, etc) and sofware/pipelines/initiatives already going on so we can all share our knowledge.
 3. **Analysis pipelines:** different analysis aproximations depending on the data: experiment (metagenomics, sispa, amplicons) and sequencing platform (Illumina, pacbio, nanopore).
 
