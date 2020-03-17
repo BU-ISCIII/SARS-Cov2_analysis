@@ -12,6 +12,54 @@ The internal structure of each analysis folder (folder naming: **{date}_{CUSTOMN
 5. **RESULTS:** one folder per each results submission for the service. They are named as YYYYMMDD_entregaXX, where YYYYMMDD is the date of submition in the numerical format year-month-day, and XX is the number of the submission.This folder will be deprecated soon because this information will be in bioinfo_doc/services
 6. **TMP:** temporal files
 
+Here you can see an example of the tree of the working folder:
+
+```
+20200306_SARS-Cov2_RESPIRATORIOS_IC_C
+├── ANALYSIS
+│   ├── 00-reads
+│   ├── 20200313_illumina_sispa
+│   └── 20200313_nanopore
+├── DOC
+│   ├── galaxy_workflow_cov19
+│   └── GalaxyWorkflow_SARS-CoV-2.sh
+├── RAW
+│   ├── logs
+│   ├── QC
+│   ├── SRR11140744_1.fastq.gz
+│   ├── SRR11140744_2.fastq.gz
+│   ├── SRR11140746_1.fastq.gz
+│   ├── SRR11140746_2.fastq.gz
+│   ├── SRR11140748_1.fastq.gz
+│   ├── SRR11140748_2.fastq.gz
+│   ├── SRR11140750_1.fastq.gz
+│   └── SRR11140750_2.fastq.gz
+├── REFERENCES
+│   ├── GCF_009858895.2_ASM985889v3_genomic.fna
+│   ├── GCF_009858895.2_ASM985889v3_genomic.gff
+│   ├── NC_045512.2.fasta -> GCF_009858895.2_ASM985889v3_genomic.fna
+│   ├── NC_045512.2.fasta.amb
+│   ├── NC_045512.2.fasta.ann
+│   ├── NC_045512.2.fasta.blast.tmp.nhr
+│   ├── NC_045512.2.fasta.blast.tmp.nin
+│   ├── NC_045512.2.fasta.blast.tmp.nsq
+│   ├── NC_045512.2.fasta.bwt
+│   ├── NC_045512.2.fasta.fai
+│   ├── NC_045512.2.fasta.nhr
+│   ├── NC_045512.2.fasta.nin
+│   ├── NC_045512.2.fasta.nog
+│   ├── NC_045512.2.fasta.nsd
+│   ├── NC_045512.2.fasta.nsi
+│   ├── NC_045512.2.fasta.nsq
+│   ├── NC_045512.2.fasta.pac
+│   ├── NC_045512.2.fasta.sa
+│   ├── NC_045512.2.gff -> GCF_009858895.2_ASM985889v3_genomic.gff
+├── RESULTS
+└── TMP
+    ├── ZEBOV_3Samples_NB
+    └── ZEBOV_3Samples_NB_MinIT_guppy.tgz
+```
+
 The idea is use this pipeline description to create a nextflow pipeline which is in progress, but for the moment we follow a mechanism for running the different steps that allows us to structure data and results in a understandable and comprenhensive way.
 You can find a description about how we launch or "semi-automatic" pipelines [here](https://github.com/BU-ISCIII/BU-ISCIII/wiki/Execution-guidelines)
 
@@ -20,8 +68,112 @@ We use a conda environment which provides all the sofware needed.
 ## Pipeline steps
 
 ### 1. Preprocessing
+#### FastQC
+[FastQC]() is used to obtain general quality metrics about the raw reads. It provides information about the quality score distribution across the reads, the per base sequence content (%T/A/G/C), adapter contamination and other overrepresented sequences.
+
+We use our [lablog](./01-fastQC/lablog) as previously explained.
+```
+bash lablog
+```
+Running this we obtain the following scripts:
+_01_rawfastqc.sh: which performs the quality control of the raw reads:
+```
+mkdir {sample_id}
+fastqc -o {sample_id} --nogroup -t 8 -k 8 ../../00-reads/{sample_id}_R1.fastq.gz ../../00-reads/{sample_id}_R2.fastq.gz
+```
+_01_unzip.sh: to unzip FastQC results:
+```
+cd {sample_id}; unzip \*.zip; cd ..
+```
+
+#### Trimmomatic
+[Trimmomatic]() is used to remove adapter contamination and to trim low quality regions. Parameters included for trimming are:
+* Nucleotides with phred quality < 10 in 3' end.
+* Mean phred quality < 20 in a 4 nucleotide window.
+* Read length < 50.
+
+We use our [lablog](./02-preprocessing/lablog) as usual:
+```
+bash lablog
+```
+Then, we obtain the following scripts:
+_01_preprocess.sh: To perform the trimming of the raw data:
+```
+mkdir {sample_id}
+java -jar <path/to/Trimmomatic/trimmomatic-0.33.jar PE -threads 10 -phred33 ../../00-reads/{sample_id}_R1.fastq.gz ../../00-reads/{sample_id}_R2.fastq.gz {sample_id}/{sample_id}_R1_filtered.fastq {sample_id}/{sample_id}_R1_unpaired.fastq {sample_id}/{sample_id}_R2_filtered.fastq {sample_id}/{sample_id}_R2_unpaired.fastq ILLUMINACLIP:/path/to/adapters/NexteraPE-PE.fa:2:30:10 SLIDINGWINDOW:4:20 MINLEN:50
+```
+And _02_pgzip.sh: To zip the trimmed fastq files:
+```
+find . -name "*fastq" -exec pigz -p 5 {} \;
+```
+
+#### FastQC of the trimmed reads
+After the trimmomatic, we perform a fastqc process again to check the quality of the trimmed reads.
+We use our [lablog](./03-preprocQC/lablog) as previously done:
+```
+bash lablog
+```
+This created two scripts:
+_01_trimfastqc.sh: which performs the quality control of the raw reads:
+```
+mkdir {sample_id}
+fastqc -o {sample_id} --nogroup -t 8 -k 8 ../../02-preprocessing/{sample_id}_R1_filtered.fastq.gz ../../00-reads/{sample_id}_R2_filtered.fastq.gz
+```
+_01_unzip.sh: to unzip FastQC results:
+```
+cd {sample_id}; unzip \*.zip; cd ..
+```
+
 ### 2. Mapping against host
+After performing the preliminary quality controls and trimming, we map the trimmed reads against the host's reference genome. In this case we are going to use the human genome hg38 from the UCSC. For the mapping we use [bwa]() or Burrows-Wheeler Aligner, which is designed for mapping low-divergent sequence reads against reference genomes. The result alignment files are further processed with [SAMtools](), from which sam format is converted to bam, sorted and an index .bai is generated. Finally, [Flagstats]() and [PicardStats]() are used to obtain statistics over the mapping process.
+
+As for the previous steps, we run the [lablog](./04-mapping_host/lablog)
+```
+bash lablog
+```
+From which the following scripts are generated:
+_00_mapping.sh: Which is going to perform the mapping of the trimmed reads against the host reference genome:
+```
+mkdir {sample_id}
+bwa mem -t 10 /path/to/host/reference/genome/hg38.fullAnalysisSet.fa ../02-preprocessing/{sample_id}/{sample_id}_R1_filtered.fastq.gz ../02-preprocessing/{sample_id}/{sample_id}_R2_filtered.fastq.gz > {sample_id}/{sample_id}.sam
+samtools view -b {sample_id}/{sample_id}.sam > {sample_id}/{sample_id}.bam
+samtools sort -o {sample_id}/{sample_id}_sorted.bam -O bam -T {sample_id}/{sample_id} {sample_id}/{sample_id}.bam
+samtools index {sample_id}/{sample_id}_sorted.bam
+```
+_01_flagstat.sh: which is going to perform stats of the mapping through samtools.
+```
+samtools flagstat {sample_id}/{sample_id}_sorted.bam
+```
+_02_picadStats.sh: Is going to perform stats about the mapping through Picard.
+```
+java -jar /path/to/picard-tools-1.140/picard.jar CollectWgsMetrics COVERAGE_CAP=1000000 I={sample_id}/{sample_id}_sorted.bam O={sample_id}/{sample_id}.stats R=/path/to/host/reference/genome/hg38.fullAnalysisSet.fa
+```
+
 ### 3. Mapping against virus
+Once we have mapped the samples to the host, we are going to map the trimmed reads to the reference viral genome. In this care we are going to use the NC_045512.2, Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1, complete genome. We are going to use the same programs we used for the mapping to the host.
+
+We run the [lablog](./05-mapping_virus/lablog)
+```
+bash lablog
+```
+We will obtain the following scripts:
+_00_mapping.sh: Which is going to perform the mapping of the trimmed reads against the viral reference genome:
+```
+mkdir {sample_id}
+bwa mem -t 10 ../../../REFERENCES/NC_045512.2.fasta ../02-preprocessing/{sample_id}/{sample_id}"_R1_filtered.fastq.gz" ../02-preprocessing/{sample_id}/{sample_id}"_R2_filtered.fastq.gz" > {sample_id}/{sample_id}".sam"
+samtools view -b {sample_id}/{sample_id}.sam > {sample_id}/{sample_id}.bam
+samtools sort -o {sample_id}/{sample_id}"_sorted.bam" -O bam -T {sample_id}/{sample_id} {sample_id}/{sample_id}.bam
+samtools index {sample_id}/{sample_id}"_sorted.bam"
+```
+_01_flagstat.sh: which is going to perform stats of the mapping through samtools.
+```
+samtools flagstat {sample_id}/{sample_id}_sorted.bam
+```
+_02_picadStats.sh: Is going to perform stats about the mapping through Picard.
+```
+java -jar /path/to/picard-tools-1.140/picard.jar CollectWgsMetrics COVERAGE_CAP=1000000 I={sample_id}/{sample_id}_sorted.bam O={sample_id}/{sample_id}.stats R=../../../REFERENCES/NC_045512.2.fasta
+```
+
 ### 4. Variant calling: low freq and mayority calling.
 [VarScan]() is used for variant calling and two different calls are made:
 1. Low frequency variants: we ran VarScan allowing until 3% of alternate allele frequency in order to search for intrahost viral population. This data is going to be meaninful if we have depth of coverages > 1000.
@@ -46,7 +198,29 @@ varscan mpileup2cns ./\${sample_id}.pileup --min-var-freq 0.8 --p-value 0.05 --v
 ```
 
 ### 5. Variant effect annotation
-### 5. Genome sequence consensus
-### 6. De novo assembly
-### 7. Contig ordering and draft generation.
-### 8. Stats and graphs
+### 6. Genome sequence consensus
+To obtain the genome sequence consensus we are going to merge the called variants we obtained in the [step 4](#4. Variant calling: low freq and mayority calling.) into the viral reference genome to obtain a consensus between our samples and the reference. For this purposewe are going to use [bgzip]() and [bcftools]().
+
+We run the [lablog](./08-mapping_consensus/lablog)
+```
+bash lablog
+```
+
+We obtain the following scripts:
+_00_bgzipvcf.sh: To zip the vcf file previously obtained:
+```
+mkdir {sample_id}_NC_045512
+bgzip -c ../06-variant_calling/{sample_id}.vcf > {sample_id}_NC_045512/{sample_id}_NC_045512.vcf.gz
+```
+_01_bcftools_index.sh: For indexinf the ziped vcf file.
+```
+bcftools index {sample_id}_NC_045512/{sample_id}_NC_045512.vcf.gz
+```
+_02_bcftools_consensus.sh
+```
+cat ../../../REFERENCES/NC_045512.2.fasta | bcftools consensus {sample_id}_NC_045512/{sample_id}_NC_045512.vcf.gz > {sample_id}_NC_045512/{sample_id}_NC_045512_consensus.fasta
+```
+
+### 7. De novo assembly
+### 8. Contig ordering and draft generation.
+### 9. Stats and graphs
