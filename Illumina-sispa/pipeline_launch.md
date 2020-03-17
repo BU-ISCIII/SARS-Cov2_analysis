@@ -71,7 +71,7 @@ We use a conda environment which provides all the sofware needed.
 #### FastQC
 [FastQC]() is used to obtain general quality metrics about the raw reads. It provides information about the quality score distribution across the reads, the per base sequence content (%T/A/G/C), adapter contamination and other overrepresented sequences.
 
-We use our [lablog](./01-fastqc/lablog) as previously explained.
+We use our [lablog](./01-fastQC/lablog) as previously explained.
 ```
 bash lablog
 ```
@@ -83,6 +83,27 @@ fastqc -o {sample_id} --nogroup -t 8 -k 8 ../../00-reads/{sample_id}_R{1}.fastq.
 _01_unzip.sh: to unzip FastQC results:
 ```
 cd {sample_id}; unzip \*.zip; cd ..
+```
+
+#### Trimmomatic
+[Trimmomatic]() is used to remove adapter contamination and to trim low quality regions. Parameters included for trimming are:
+* Nucleotides with phred quality < 10 in 3' end.
+* Mean phred quality < 20 in a 4 nucleotide window.
+* Read length < 50.
+
+We use our [lablog](./02-preprocessing/lablog) as usual:
+```
+bash lablog
+```
+Then, we obtain the following scripts:
+_01_preprocess.sh: To perform the trimming of the raw data:
+```
+mkdir {sample_id}
+java -jar <path/to/Trimmomatic/trimmomatic-0.33.jar PE -threads 10 -phred33 ../../00-reads/{sample_id}_R1.fastq.gz ../../00-reads/{sample_id}_R2.fastq.gz {sample_id}/{sample_id}_R1_filtered.fastq {sample_id}/{sample_id}_R1_unpaired.fastq {sample_id}/{sample_id}_R2_filtered.fastq {sample_id}/{sample_id}_R2_unpaired.fastq ILLUMINACLIP:/path/to/adapters/NexteraPE-PE.fa:2:30:10 SLIDINGWINDOW:4:20 MINLEN:50
+```
+And _02_pgzip.sh: To zip the trimmed fastq files:
+```
+find . -name "*fastq" -exec pigz -p 5 {} \;
 ```
 ### 2. Mapping against host
 ### 3. Mapping against virus
