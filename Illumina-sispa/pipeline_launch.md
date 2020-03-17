@@ -132,7 +132,7 @@ As for the previous steps, we run the [lablog](./04-mapping_host/lablog)
 bash lablog
 ```
 From which the following scripts are generated:
-_00_mapping_host.sh: Which is going to perform the mapping of the trimmed reads against the host reference genome:
+_00_mapping.sh: Which is going to perform the mapping of the trimmed reads against the host reference genome:
 ```
 mkdir {sample_id}
 bwa mem -t 10 /path/to/host/reference/genome/hg38.fullAnalysisSet.fa ../02-preprocessing/{sample_id}/{sample_id}_R1_filtered.fastq.gz ../02-preprocessing/{sample_id}/{sample_id}_R2_filtered.fastq.gz > {sample_id}/{sample_id}.sam
@@ -150,6 +150,29 @@ java -jar /path/to/picard-tools-1.140/picard.jar CollectWgsMetrics COVERAGE_CAP=
 ```
 
 ### 3. Mapping against virus
+Once we have mapped the samples to the host, we are going to map the trimmed reads to the reference viral genome. In this care we are going to use the NC_045512.2, Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1, complete genome. We are going to use the same programs we used for the mapping to the host.
+
+We run the [lablog](./05-mapping_virus/lablog)
+```
+bash lablog
+```
+We will obtain the following scripts:
+_00_mapping.sh: Which is going to perform the mapping of the trimmed reads against the viral reference genome:
+```
+mkdir {sample_id}
+bwa mem -t 10 ../../../REFERENCES/NC_045512.2.fasta ../02-preprocessing/{sample_id}/{sample_id}"_R1_filtered.fastq.gz" ../02-preprocessing/{sample_id}/{sample_id}"_R2_filtered.fastq.gz" > {sample_id}/{sample_id}".sam"
+samtools view -b {sample_id}/{sample_id}.sam > {sample_id}/{sample_id}.bam
+samtools sort -o {sample_id}/{sample_id}"_sorted.bam" -O bam -T {sample_id}/{sample_id} {sample_id}/{sample_id}.bam
+samtools index {sample_id}/{sample_id}"_sorted.bam"
+```
+_01_flagstat.sh: which is going to perform stats of the mapping through samtools.
+```
+samtools flagstat {sample_id}/{sample_id}_sorted.bam
+```
+_02_picadStats.sh: Is going to perform stats about the mapping through Picard.
+java -jar /path/to/picard-tools-1.140/picard.jar CollectWgsMetrics COVERAGE_CAP=1000000 I={sample_id}/{sample_id}_sorted.bam O={sample_id}/{sample_id}.stats R=../../../REFERENCES/NC_045512.2.fasta
+
+
 ### 4. Variant calling: low freq and mayority calling.
 [VarScan]() is used for variant calling and two different calls are made:
 1. Low frequency variants: we ran VarScan allowing until 3% of alternate allele frequency in order to search for intrahost viral population. This data is going to be meaninful if we have depth of coverages > 1000.
