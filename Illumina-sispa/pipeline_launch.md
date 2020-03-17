@@ -78,7 +78,7 @@ bash lablog
 Running this we obtain the following scripts:
 _01_rawfastqc.sh: which performs the quality control of the raw reads:
 ```
-fastqc -o {sample_id} --nogroup -t 8 -k 8 ../../00-reads/{sample_id}_R{1}.fastq.gz ../../00-reads/{sample_id}_R2.fastq.gz
+fastqc -o {sample_id} --nogroup -t 8 -k 8 ../../00-reads/{sample_id}_R1.fastq.gz ../../00-reads/{sample_id}_R2.fastq.gz
 ```
 _01_unzip.sh: to unzip FastQC results:
 ```
@@ -105,6 +105,23 @@ And _02_pgzip.sh: To zip the trimmed fastq files:
 ```
 find . -name "*fastq" -exec pigz -p 5 {} \;
 ```
+
+#### FastQC of the trimmed reads
+After the trimmomatic, we perform a fastqc process again to check the quality of the trimmed reads.
+We use our [lablog](./03-preprocQC/lablog) as previously done:
+```
+bash lablog
+```
+This created two scripts:
+_01_trimfastqc.sh: which performs the quality control of the raw reads:
+```
+fastqc -o {sample_id} --nogroup -t 8 -k 8 ../../02-preprocessing/{sample_id}_R1_filtered.fastq.gz ../../00-reads/{sample_id}_R2_filtered.fastq.gz
+```
+_01_unzip.sh: to unzip FastQC results:
+```
+cd {sample_id}; unzip \*.zip; cd ..
+```
+
 ### 2. Mapping against host
 ### 3. Mapping against virus
 ### 4. Variant calling: low freq and mayority calling.
