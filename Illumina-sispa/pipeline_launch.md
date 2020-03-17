@@ -12,6 +12,54 @@ The internal structure of each analysis folder (folder naming: **{date}_{CUSTOMN
 5. **RESULTS:** one folder per each results submission for the service. They are named as YYYYMMDD_entregaXX, where YYYYMMDD is the date of submition in the numerical format year-month-day, and XX is the number of the submission.This folder will be deprecated soon because this information will be in bioinfo_doc/services
 6. **TMP:** temporal files
 
+Here you can see an example of the tree of the working folder:
+
+```
+20200306_SARS-Cov2_RESPIRATORIOS_IC_C
+├── ANALYSIS
+│   ├── 00-reads
+│   ├── 20200313_illumina_sispa
+│   └── 20200313_nanopore
+├── DOC
+│   ├── galaxy_workflow_cov19
+│   └── GalaxyWorkflow_SARS-CoV-2.sh
+├── RAW
+│   ├── logs
+│   ├── QC
+│   ├── SRR11140744_1.fastq.gz
+│   ├── SRR11140744_2.fastq.gz
+│   ├── SRR11140746_1.fastq.gz
+│   ├── SRR11140746_2.fastq.gz
+│   ├── SRR11140748_1.fastq.gz
+│   ├── SRR11140748_2.fastq.gz
+│   ├── SRR11140750_1.fastq.gz
+│   └── SRR11140750_2.fastq.gz
+├── REFERENCES
+│   ├── GCF_009858895.2_ASM985889v3_genomic.fna
+│   ├── GCF_009858895.2_ASM985889v3_genomic.gff
+│   ├── NC_045512.2.fasta -> GCF_009858895.2_ASM985889v3_genomic.fna
+│   ├── NC_045512.2.fasta.amb
+│   ├── NC_045512.2.fasta.ann
+│   ├── NC_045512.2.fasta.blast.tmp.nhr
+│   ├── NC_045512.2.fasta.blast.tmp.nin
+│   ├── NC_045512.2.fasta.blast.tmp.nsq
+│   ├── NC_045512.2.fasta.bwt
+│   ├── NC_045512.2.fasta.fai
+│   ├── NC_045512.2.fasta.nhr
+│   ├── NC_045512.2.fasta.nin
+│   ├── NC_045512.2.fasta.nog
+│   ├── NC_045512.2.fasta.nsd
+│   ├── NC_045512.2.fasta.nsi
+│   ├── NC_045512.2.fasta.nsq
+│   ├── NC_045512.2.fasta.pac
+│   ├── NC_045512.2.fasta.sa
+│   ├── NC_045512.2.gff -> GCF_009858895.2_ASM985889v3_genomic.gff
+├── RESULTS
+└── TMP
+    ├── ZEBOV_3Samples_NB
+    └── ZEBOV_3Samples_NB_MinIT_guppy.tgz
+```
+
 The idea is use this pipeline description to create a nextflow pipeline which is in progress, but for the moment we follow a mechanism for running the different steps that allows us to structure data and results in a understandable and comprenhensive way.
 You can find a description about how we launch or "semi-automatic" pipelines [here](https://github.com/BU-ISCIII/BU-ISCIII/wiki/Execution-guidelines)
 
