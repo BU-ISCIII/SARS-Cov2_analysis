@@ -1,0 +1,41 @@
+echo "#$ -V" >> samtools_mpileup.sh
+echo "#$ -b y" >> samtools_mpileup.sh
+echo "#$ -j y" >> samtools_mpileup.sh
+echo "#$ -cwd" >> samtools_mpileup.sh
+echo "#$ -N samtools_mpileup" >> samtools_mpileup.sh
+echo "#$ -q all.q" >> samtools_mpileup.sh
+echo "#$ -t 1-$(wc -l ../samples_id.txt | cut -d " " -f 1)" >> samtools_mpileup.sh
+echo "set -e" >> samtools_mpileup.sh
+echo "set -x" >> samtools_mpileup.sh
+echo "infile=../samples_id.txt" >> samtools_mpileup.sh
+echo 'in=$(awk "NR==$SGE_TASK_ID" $infile)' >> samtools_mpileup.sh
+echo "samtools mpileup -A -d 20000 -Q 0 -f ../../../REFERENCES/NC_045512.2.fasta ../06-mapping_virus/\${in}/\${in}_sorted.bam > \${in}.pileup" >> samtools_mpileup.sh
+
+
+
+echo "#$ -V" >> varscan.sh
+echo "#$ -b y" >> varscan.sh
+echo "#$ -j y" >> varscan.sh
+echo "#$ -cwd" >> varscan.sh
+echo "#$ -N varscan" >> varscan.sh
+echo "#$ -q all.q" >> varscan.sh
+echo "#$ -t 1-$(wc -l ../samples_id.txt | cut -d " " -f 1)" >> varscan.sh
+echo "set -e" >> varscan.sh
+echo "set -x" >> varscan.sh
+echo "infile=../samples_id.txt" >> varscan.sh
+echo 'in=$(awk "NR==$SGE_TASK_ID" $infile)' >> varscan.sh
+echo "mkdir \$in" >> varscan.sh
+echo "varscan mpileup2cns ./\${in}.pileup --min-var-freq 0.02 --p-value 0.99 --variants --output-vcf 1 > \${in}.vcf" >> varscan.sh
+
+echo "#$ -V" >> varscanMayority.sh
+echo "#$ -b y" >> varscanMayority.sh
+echo "#$ -j y" >> varscanMayority.sh
+echo "#$ -cwd" >> varscanMayority.sh
+echo "#$ -N varscanMayority" >> varscanMayority.sh
+echo "#$ -q all.q" >> varscanMayority.sh
+echo "#$ -t 1-$(wc -l ../samples_id.txt | cut -d " " -f 1)" >> varscanMayority.sh
+echo "set -e" >> varscanMayority.sh
+echo "set -x" >> varscanMayority.sh
+echo "infile=../samples_id.txt" >> varscanMayority.sh
+echo 'in=$(awk "NR==$SGE_TASK_ID" $infile)' >> varscanMayority.sh
+echo "varscan mpileup2cns ./\${in}.pileup --min-var-freq 0.8 --p-value 0.05 --variants --output-vcf 1 > \${in}_mayority.vcf" >> varscanMayority.sh
