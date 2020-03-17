@@ -170,8 +170,9 @@ _01_flagstat.sh: which is going to perform stats of the mapping through samtools
 samtools flagstat {sample_id}/{sample_id}_sorted.bam
 ```
 _02_picadStats.sh: Is going to perform stats about the mapping through Picard.
+```
 java -jar /path/to/picard-tools-1.140/picard.jar CollectWgsMetrics COVERAGE_CAP=1000000 I={sample_id}/{sample_id}_sorted.bam O={sample_id}/{sample_id}.stats R=../../../REFERENCES/NC_045512.2.fasta
-
+```
 
 ### 4. Variant calling: low freq and mayority calling.
 [VarScan]() is used for variant calling and two different calls are made:
