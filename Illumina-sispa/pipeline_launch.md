@@ -78,6 +78,7 @@ bash lablog
 Running this we obtain the following scripts:
 _01_rawfastqc.sh: which performs the quality control of the raw reads:
 ```
+mkdir {sample_id}
 fastqc -o {sample_id} --nogroup -t 8 -k 8 ../../00-reads/{sample_id}_R1.fastq.gz ../../00-reads/{sample_id}_R2.fastq.gz
 ```
 _01_unzip.sh: to unzip FastQC results:
@@ -115,6 +116,7 @@ bash lablog
 This created two scripts:
 _01_trimfastqc.sh: which performs the quality control of the raw reads:
 ```
+mkdir {sample_id}
 fastqc -o {sample_id} --nogroup -t 8 -k 8 ../../02-preprocessing/{sample_id}_R1_filtered.fastq.gz ../../00-reads/{sample_id}_R2_filtered.fastq.gz
 ```
 _01_unzip.sh: to unzip FastQC results:
@@ -123,6 +125,30 @@ cd {sample_id}; unzip \*.zip; cd ..
 ```
 
 ### 2. Mapping against host
+After performing the preliminary quality controls and trimming, we map the trimmed reads against the host's reference genome. In this case we are going to use the human genome hg38 from the UCSC. For the mapping we use [bwa]() or Burrows-Wheeler Aligner, which is designed for mapping low-divergent sequence reads against reference genomes. The result alignment files are further processed with [SAMtools](), from which sam format is converted to bam, sorted and an index .bai is generated. Finally, [Flagstats]() and [PicardStats]() are used to obtain statistics over the mapping process.
+
+As for the previous steps, we run the [lablog](./04-mapping_host/lablog)
+```
+bash lablog
+```
+From which the following scripts are generated:
+_00_mapping_host.sh: Which is going to perform the mapping of the trimmed reads against the host reference genome:
+```
+mkdir {sample_id}
+bwa mem -t 10 /path/to/host/reference/genome/hg38.fullAnalysisSet.fa ../02-preprocessing/{sample_id}/{sample_id}_R1_filtered.fastq.gz ../02-preprocessing/{sample_id}/{sample_id}_R2_filtered.fastq.gz > {sample_id}/{sample_id}.sam
+samtools view -b {sample_id}/{sample_id}.sam > {sample_id}/{sample_id}.bam
+samtools sort -o {sample_id}/{sample_id}_sorted.bam -O bam -T {sample_id}/{sample_id} {sample_id}/{sample_id}.bam
+samtools index {sample_id}/{sample_id}_sorted.bam
+```
+_01_flagstat.sh: which is going to perform stats of the mapping through samtools.
+```
+samtools flagstat {sample_id}/{sample_id}_sorted.bam
+```
+_02_picadStats.sh: Is going to perform stats about the mapping through Picard.
+```
+java -jar /path/to/picard-tools-1.140/picard.jar CollectWgsMetrics COVERAGE_CAP=1000000 I={sample_id}/{sample_id}_sorted.bam O={sample_id}/{sample_id}.stats R=/path/to/host/reference/genome/hg38.fullAnalysisSet.fa
+```
+
 ### 3. Mapping against virus
 ### 4. Variant calling: low freq and mayority calling.
 [VarScan]() is used for variant calling and two different calls are made:
