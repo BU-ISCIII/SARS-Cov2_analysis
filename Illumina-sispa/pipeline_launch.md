@@ -198,7 +198,29 @@ varscan mpileup2cns ./\${sample_id}.pileup --min-var-freq 0.8 --p-value 0.05 --v
 ```
 
 ### 5. Variant effect annotation
-### 5. Genome sequence consensus
-### 6. De novo assembly
-### 7. Contig ordering and draft generation.
-### 8. Stats and graphs
+### 6. Genome sequence consensus
+To obtain the genome sequence consensus we are going to merge the called variants we obtained in the [step 4](#4. Variant calling: low freq and mayority calling.) into the viral reference genome to obtain a consensus between our samples and the reference. For this purposewe are going to use [bgzip]() and [bcftools]().
+
+We run the [lablog](./08-mapping_consensus/lablog)
+```
+bash lablog
+```
+
+We obtain the following scripts:
+_00_bgzipvcf.sh: To zip the vcf file previously obtained:
+```
+mkdir {sample_id}_NC_045512
+bgzip -c ../06-variant_calling/{sample_id}.vcf > {sample_id}_NC_045512/{sample_id}_NC_045512.vcf.gz
+```
+_01_bcftools_index.sh: For indexinf the ziped vcf file.
+```
+bcftools index {sample_id}_NC_045512/{sample_id}_NC_045512.vcf.gz
+```
+_02_bcftools_consensus.sh
+```
+cat ../../../REFERENCES/NC_045512.2.fasta | bcftools consensus {sample_id}_NC_045512/{sample_id}_NC_045512.vcf.gz > {sample_id}_NC_045512/{sample_id}_NC_045512_consensus.fasta
+```
+
+### 7. De novo assembly
+### 8. Contig ordering and draft generation.
+### 9. Stats and graphs
