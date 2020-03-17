@@ -68,6 +68,22 @@ We use a conda environment which provides all the sofware needed.
 ## Pipeline steps
 
 ### 1. Preprocessing
+#### FastQC
+[FastQC]() is used to obtain general quality metrics about the raw reads. It provides information about the quality score distribution across the reads, the per base sequence content (%T/A/G/C), adapter contamination and other overrepresented sequences.
+
+We use our [lablog](./01-fastqc/lablog) as previously explained.
+```
+bash lablog
+```
+Running this we obtain the following scripts:
+_01_rawfastqc.sh: which performs the quality control of the raw reads:
+```
+fastqc -o {sample_id} --nogroup -t 8 -k 8 ../../00-reads/{sample_id}_R{1}.fastq.gz ../../00-reads/{sample_id}_R2.fastq.gz
+```
+_01_unzip.sh: to unzip FastQC results:
+```
+cd {sample_id}; unzip \*.zip; cd ..
+```
 ### 2. Mapping against host
 ### 3. Mapping against virus
 ### 4. Variant calling: low freq and mayority calling.
