@@ -4,11 +4,19 @@
 ## Introduction
 
 ## Methodology
-The idea is use this pipeline description to create a nextflow pipeline which is in progress, but for the moment we follow a launch mechanism that allows us to structure data and results in a understandable and comprenhensive way.
+The internal structure of each analysis folder (folder naming: **{date}_{CUSTOMNAME}_{user/institution}**) consist on 6 folders:
+1. **ANALYSIS:** each analysis (scripts, documentation and results) we make will be in a folder here, named as XX-name where XX is the number of the analysis and name is the name of the analysis.
+2. **DOC:** any documentation required for the service or talks, posters an publications derived from its results.
+3. **RAW:** raw input data is copied here while we are working on the service
+4. **REFERENCES:** reference sequences and files for the analysis
+5. **RESULTS:** one folder per each results submission for the service. They are named as YYYYMMDD_entregaXX, where YYYYMMDD is the date of submition in the numerical format year-month-day, and XX is the number of the submission.This folder will be deprecated soon because this information will be in bioinfo_doc/services
+6. **TMP:** temporal files
+
+The idea is use this pipeline description to create a nextflow pipeline which is in progress, but for the moment we follow a mechanism for running the different steps that allows us to structure data and results in a understandable and comprenhensive way.
 You can find a description about how we launch or "semi-automatic" pipelines [here](https://github.com/BU-ISCIII/BU-ISCIII/wiki/Execution-guidelines)
 
 ## Software and dependencies installation
-
+We use a conda environment which provides all the sofware needed.
 ## Pipeline steps
 
 ### 1. Preprocessing
