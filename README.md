@@ -4,7 +4,7 @@
 ## Introduction
 This repo will contain all the information we can collect about the bioinformatics analysis of SARS-Cov2. We will try to include:
 1. **[General information about the virus](https://github.com/BU-ISCIII/SARS-Cov2_analysis/wiki/General-information):** genomics, epidemiology, molecular mechanisms,etc
-2. **[Wetlab protocols](https://github.com/BU-ISCIII/SARS-Cov2_analysis/wiki/General-information):** we are no wetlab experts, here we collect another groups/bibliography approximations that are currently being used.
+2. **[Wetlab protocols](https://github.com/BU-ISCIII/SARS-Cov2_analysis/wiki/General-information):** we are no wetlab experts, here we collect another groups/bibliography approximations that are currently being used. Knowing the protocols is imperative for develop comprenhensive pipelines addecuated to the data.
 3. **[Data resources](https://github.com/BU-ISCIII/SARS-Cov2_analysis/wiki/Data-resources):** summary of resources for covid19 (raw data, genomes, etc) and sofware/pipelines/initiatives already going on so we can all share our knowledge.
 4. **[Analysis pipelines](https://github.com/BU-ISCIII/SARS-Cov2_analysis/wiki/Analysis-pipelines):** different analysis aproximations depending on the data: experiment (metagenomics, sispa, amplicons) and sequencing platform (Illumina, pacbio, nanopore).
 
