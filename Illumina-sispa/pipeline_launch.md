@@ -222,5 +222,57 @@ cat ../../../REFERENCES/NC_045512.2.fasta | bcftools consensus {sample_id}_NC_04
 ```
 
 ### 7. De novo assembly
+We are going to use the reads that did NOT map to the host reference genome to create a De Novo assembly. First we are going to use [Samtools]() and [Bedtools]() to transform the bam file with the unmapped reads into fastq files for the assembly. As the most accurate way to do this depends a lot on the viral genome, the number of reads etc., we are going to perform the De Novo assembly in three different ways:
+* Usind [Spades]():
+  * Normal mode
+  * Meta Spades mode
+* Using [Unicycler]()
+Finally, we are going to use [Quast]() to determine which assembly is the best for our analysis.
+
+First of all we are going to run the [lablog](./09-assembly/lablog) as allways:
+```
+bash lablog
+```
+This will create the following scripts:
+_01_unmapped.sh: To select the reads that did not map to the host reference genome.
+```
+mkdir {sample_id}
+samtools view -b -f 4 ../04-mapping_host/{sample_id}/{sample_id}_sorted.bam > {sample_id}/{sample_id}_unmapped.bam
+```
+_02_name_sorted.sh: To sort the unmapped bam by name:
+```
+samtools sort -n {sample_id}/{sample_id}_unmapped.bam -o {sample_id}/{sample_id}_unmapped_qsorted.bam
+```
+_03_bamtofastq.sh: To transofrm the unmapped sorted bam file to fastq files. If the reads are pair-end you can create R1 and R2, if they are single-end you can just create R1.
+```
+bedtools bamtofastq -i {sample_id}/{sample_id}_unmapped_qsorted.bam -fq {sample_id}/{sample_id}_R1_unmapped.fastq -fq2 {sample_id}/{sample_id}_R2_unmapped.fastq
+```
+_04_spades_assembly.sh: Normal mode spades de novo assembly.
+```
+spades.py -t 10 -1 {sample_id}/{sample_id}_R1_unmapped.fastq -2 {sample_id}/{sample_id}_R2_unmapped.fastq -o {sample_id}/{sample_id}
+```
+_05_spades_assembly_meta.sh: Meta mode spades de novo assembly. This just works for pair-end data. If you have single-end data skip this step.
+```
+/path/to/spades-3.7.1/bin/spades.py -t 10 -1 {sample_id}/{sample_id}_R1_unmapped.fastq -2 {sample_id}/{sample_id}_R2_unmapped.fastq -o {sample_id}/{sample_id}_meta
+```
+_06_unicycler.sh: To run unicycler de novo assembly.
+```
+unicycler -t 10 -o % -1 ../02-preprocessing/{sample_id}/{sample_id}_R1_filtered.fastq.gz -2 ../02-preprocessing/{sample_id}/{sample_id}_R2_filtered.fastq.gz
+```
+Now we are going to rename the output files from the programs:
+```
+mv {sample_id}/{sample_id}/scaffolds.fasta {sample_id}/{sample_id}/%_scaffolds.fasta
+mv {sample_id}/{sample_id}_meta/scaffolds.fasta {sample_id}/{sample_id}_meta/%_meta_scaffolds.fasta
+mv %/assembly.fasta {sample_id}/{sample_id}_assembly.fasta
+```
+_06_quast.sh: To run quast for comparing the different Spades scaffolds:
+```
+quast.py --output-dir quast_report -R ../../../REFERENCES/NC_045512.2.fasta -G ../../../REFERENCES/NC_045512.2.gff -t 10 $(find . -name "*scaffolds*.fasta" | tr '\n' ' ')"
+```
+_07_quast.sh: To run quast to compare the unicycler assemblies.
+```
+quast.py --output-dir quast_report_2 -R ../../../REFERENCES/NC_045512.2.fasta -G ../../../REFERENCES/NC_045512.2.gff -t 10 $(find . -name "*assembly.fasta" | tr '\n' ' ')"
+```
+
 ### 8. Contig ordering and draft generation.
 ### 9. Stats and graphs
