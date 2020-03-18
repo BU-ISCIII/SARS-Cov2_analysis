@@ -276,3 +276,22 @@ quast.py --output-dir quast_report_2 -R ../../../REFERENCES/NC_045512.2.fasta -G
 
 ### 8. Contig ordering and draft generation.
 ### 9. Stats and graphs
+To graphically see how good or bad the assembly is compared to the reference, we are going to use a program we developped called [plasmidID](). Even if the program was created to map assemblies and plasmids, we can use this program to map and align the assemblies to the reference genome and obtain a plot.
+
+We are going to run the [lablog](./10-plasmidID/lablog) as allways:
+```
+bash lablog
+```
+From which we are going to obtain the following scripts:
+_01_plasmidID_spades.sh: To perform the plasmidID over the normal spades assemblies:
+```
+plasmidID.sh -d ${directory}/../../../REFERENCES/NC_045512.2.fasta -s % -c ${directory}/../05-assembly/{sample_id}/{sample_id}/%_scaffolds.fasta -g SPADES --only-reconstruct -C 47 -S 47 -i 60 --no-trim -o ${directory}
+```
+_02_plasmidID_metaspades.sh: To perorm the plasmidID over the meta spades assemblies:
+```
+plasmidID.sh -d ${directory}/../../../REFERENCES/NC_045512.2.fasta -s % -c ${directory}/../05-assembly/{sample_id}/{sample_id}_meta/%_scaffolds_meta.fasta -g META_SPADES --only-reconstruct -C 47 -S 47 -i 60 --no-trim -o ${directory}
+```
+_03_plasmidID_unicycler.sh: To perform plasmidID over the unicycler assemblies:
+```
+plasmidID.sh -d ${directory}/../../../REFERENCES/NC_045512.2.fasta -s % -c ${directory}/../05-assembly/{sample_id}/{sample_id}_assembly.fasta -g UNICYCLER --only-reconstruct -C 47 -S 47 -i 60 --no-trim -o ${directory}
+```
