@@ -74,10 +74,11 @@ We mapped the fastq file agains both reference host genome and reference viral g
 
 Picard documentation: [Picarddocs](https://broadinstitute.github.io/picard/command-line-overview.html)
 
-##Variant calling and consensus genome
+## Variant calling and consensus genome
 The first approach we used to generate the consensus viral genome was to call for variants between the mapped reads and the reference viral genome, and adding these variants to the reference viral genome.
 **NOTE:** This analysis couldn't be performed in with this data due to low % of reads mapping against the virus reference genome.
-##Bcftools
+
+## Bcftools
 [Bcftools](http://samtools.github.io/bcftools/bcftools.html) mpileup command is used for generate a pileup for one the BAM files. In the pileup format each line represents a genomic position, consisting of chromosome name, 1-based coordinate, reference base, the number of reads covering the site, read bases, base qualities and alignment mapping qualities. Information on match, mismatch, indel, strand, mapping quality and start and end of a read are all encoded at the read base column.
 
 The resulting variant calling vcf for haploid genomes is indexed and then the consensus genome is created adding the variants to the reference viral genome. This consensus genome was obtained using the predominant variants of the mapping file.
@@ -90,9 +91,9 @@ The resulting variant calling vcf for haploid genomes is indexed and then the co
 * `{sample_id}_{reference_virus_name}/{sample_id}_{reference_virus_name}_consensus.fasta`
   * Consensus viral genome file generated from adding the variants called before to the viral reference genome. These variants are only the majoritarian variants, inlcuding only SNPs and small indels. This file is also contained in the 10-final_results folder as {sample_id}_{reference_virus_name}_consensus.fasta.
 
-##Viral genome assembly
+## Viral genome assembly
 Other approach we used to generate the consensus viral genome was assembling the reads that didn't mapped to the host genome.
-###SAMtools
+### SAMtools
 In this section SAMtools was used to obtain the reads that didn't mapped with the host genome. This reads where sorted and converted to fastq files.
 
 **Output directory: `07-assembly`**
