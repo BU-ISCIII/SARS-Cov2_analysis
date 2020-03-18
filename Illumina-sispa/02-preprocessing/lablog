@@ -1,0 +1,3 @@
+echo '#!/bin/bash' > _01_preprocess.sh
+cat ../samples_id.txt | while read in; do echo "mkdir $in;qsub -V -b y -j y -cwd -N TRIMMOMATIC.$in -q all.q -pe openmp 10 java -jar /opt/Trimmomatic-0.33/trimmomatic-0.33.jar PE -threads 10 -phred33 ../../00-reads/"$in"_R1.fastq.gz ../../00-reads/"$in"_R2.fastq.gz $in/"$in"_R1_filtered.fastq $in/"$in"_R1_unpaired.fastq $in/"$in"_R2_filtered.fastq $in/"$in"_R2_unpaired.fastq ILLUMINACLIP:/opt/Trimmomatic/adapters/NexteraPE-PE.fa:2:30:10 SLIDINGWINDOW:4:20 MINLEN:50"; done >> _01_preprocess.sh
+echo 'find . -name "*.fastq" -exec qsub -V -b y -j y -cwd -N PGZIP -pe openmp 5 pigz -p 5 {} \;' > _02_pgzip.sh
