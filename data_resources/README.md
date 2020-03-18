@@ -1,4 +1,4 @@
-<img src="./BU_ISCIII_logo.png" alt="logo" width="300" align="right"/>
+<img src="../BU_ISCIII_logo.png" alt="logo" width="300" align="right"/>
 
 # SARS-Cov2 data resources
 ## Primers and Probes employed by the different international entities to perform Real-Time RT-PCR to detect SARS-Cov2
