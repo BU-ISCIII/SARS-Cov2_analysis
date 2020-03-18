@@ -1,0 +1,15 @@
+
+cat ../samples_id.txt | while read in; do echo "bgzip -c ../08-variant_calling/${in}.vcf > ${in}_NC_045512/${in}_NC_045512.vcf.gz";done > _00_bgzipvcf.sh
+
+cat ../samples_id.txt | while read in; do echo "qsub -V -b y -j y -cwd -N BCFTOOLS_INDEX -q all.q bcftools index ${in}_NC_045512/${in}_NC_045512.vcf.gz";done > _01_bcftools_index.sh
+
+echo "#$ -j y" >> _02_bcftools_consensus.sh
+echo "#$ -cwd" >> _02_bcftools_consensus.sh
+echo "#$ -V" >> _02_bcftools_consensus.sh
+echo "#$ -N BCFTOOLS_CONSENSUS" >> _02_bcftools_consensus.sh
+echo "#$ -q all.q" >> _02_bcftools_consensus.sh
+echo "#$ -t 1-$(wc -l ../samples_id.txt | cut -d ' ' -f 1)" >> _02_bcftools_consensus.sh
+echo 'infile=../samples_id.txt' >> _02_bcftools_consensus.sh
+echo 'in=$(awk "NR==$SGE_TASK_ID" $infile)' >> _02_bcftools_consensus.sh
+
+echo 'cat ../../../REFERENCES/NC_045512.2.fasta | bcftools consensus ${in}_NC_045512/${in}_NC_045512.vcf.gz > ${in}_NC_045512/${in}_NC_045512_consensus.fasta' >> _02_bcftools_consensus.sh
