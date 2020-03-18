@@ -275,7 +275,30 @@ quast.py --output-dir quast_report_2 -R ../../../REFERENCES/NC_045512.2.fasta -G
 ```
 
 ### 8. Contig ordering and draft generation.
-### 9. Stats and graphs
+
+### 9. Alignment
+We are going to perorm a [BLAST]() to align the de novo assemblies to the reference viral genome.
+
+First we run the [lablog](./10-blast/lablog)
+```
+bash lablog
+```
+This will create the following scripts:
+_00_blast.sh: Performs the alignment.
+```
+blastn -num_threads 10 -db ../../../REFERENCES/NC_045512.2.fasta -query ../05-assembly/%/%/%_scaffolds.fasta -outfmt \'6 stitle std slen qlen qcovs\' -out %_blast.txt
+```
+_01_filterBlast.sh: Filters the BLAST output to only keep the significant results and parses the results to add headers.
+```
+awk 'BEGIN{OFS=\"\\t\";FS=\"\\t\"}{print \$0,\$5/\$15,\$5/\$14}' %_blast.txt | awk 'BEGIN{OFS=\"\\t\";FS=\"\\t\"} \$15 > 200 && \$17 > 0.7 && \$1 !~ /phage/ {print \$0}' > %_blast_filt.txt; cat header %_blast_filt.txt > %_blast_filt_header.txt
+```
+_02_rmTmp.sh: Removes the temporary files created in the previous step.
+```
+rm *_blast.txt *_blast_filt.txt
+```
+
+### 10. Stats and graphs
+#### PlasmidID
 To graphically see how good or bad the assembly is compared to the reference, we are going to use a program we developped called [plasmidID](). Even if the program was created to map assemblies and plasmids, we can use this program to map and align the assemblies to the reference genome and obtain a plot.
 
 We are going to run the [lablog](./11-plasmidID/lablog) as allways:
