@@ -69,7 +69,7 @@ We use a conda environment which provides all the sofware needed.
 
 ### 1. Preprocessing
 #### FastQC
-[FastQC]() is used to obtain general quality metrics about the raw reads. It provides information about the quality score distribution across the reads, the per base sequence content (%T/A/G/C), adapter contamination and other overrepresented sequences.
+[FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc) is used to obtain general quality metrics about the raw reads. It provides information about the quality score distribution across the reads, the per base sequence content (%T/A/G/C), adapter contamination and other overrepresented sequences.
 
 We use our [lablog](./01-fastQC/lablog) as previously explained.
 ```
@@ -87,7 +87,7 @@ cd {sample_id}; unzip \*.zip; cd ..
 ```
 
 #### Trimmomatic
-[Trimmomatic]() is used to remove adapter contamination and to trim low quality regions. Parameters included for trimming are:
+[Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) is used to remove adapter contamination and to trim low quality regions. Parameters included for trimming are:
 * Nucleotides with phred quality < 10 in 3' end.
 * Mean phred quality < 20 in a 4 nucleotide window.
 * Read length < 50.
@@ -125,7 +125,7 @@ cd {sample_id}; unzip \*.zip; cd ..
 ```
 
 ### 2. Mapping against host
-After performing the preliminary quality controls and trimming, we map the trimmed reads against the host's reference genome. In this case we are going to use the human genome hg38 from the UCSC. For the mapping we use [bwa]() or Burrows-Wheeler Aligner, which is designed for mapping low-divergent sequence reads against reference genomes. The result alignment files are further processed with [SAMtools](), from which sam format is converted to bam, sorted and an index .bai is generated. Finally, [Flagstats]() and [PicardStats]() are used to obtain statistics over the mapping process.
+After performing the preliminary quality controls and trimming, we map the trimmed reads against the host's reference genome. In this case we are going to use the human genome hg38 from the UCSC. For the mapping we use [bwa](http://bio-bwa.sourceforge.net/bwa.shtml) or Burrows-Wheeler Aligner, which is designed for mapping low-divergent sequence reads against reference genomes. The result alignment files are further processed with [SAMtools](http://www.htslib.org/doc/samtools.html), from which sam format is converted to bam, sorted and an index .bai is generated. Finally, Samtools flagstats and [PicardStats](https://broadinstitute.github.io/picard/) are used to obtain statistics over the mapping process.
 
 As for the previous steps, we run the [lablog](./04-mapping_host/lablog)
 ```
@@ -175,7 +175,7 @@ java -jar /path/to/picard-tools-1.140/picard.jar CollectWgsMetrics COVERAGE_CAP=
 ```
 
 ### 4. Variant calling: low freq and mayority calling.
-[VarScan]() is used for variant calling and two different calls are made:
+[VarScan](http://varscan.sourceforge.net/) is used for variant calling and two different calls are made:
 1. Low frequency variants: we ran VarScan allowing until 3% of alternate allele frequency in order to search for intrahost viral population. This data is going to be meaninful if we have depth of coverages > 1000.
 2. Mayority allele calling: we need to generate a consensus genome, so we are going to call just the variants which are present in the mayority of the virus in the sample, we are going to use > 80% in order to keep also some indels that are more difficult called.
 
@@ -198,8 +198,9 @@ varscan mpileup2cns ./\${sample_id}.pileup --min-var-freq 0.8 --p-value 0.05 --v
 ```
 
 ### 5. Variant effect annotation
+[SnpEff](http://snpeff.sourceforge.net/)
 ### 6. Genome sequence consensus
-To obtain the genome sequence consensus we are going to merge the called variants we obtained in the [step 4](#4. Variant calling: low freq and mayority calling.) into the viral reference genome to obtain a consensus between our samples and the reference. For this purposewe are going to use [bgzip]() and [bcftools]().
+To obtain the genome sequence consensus we are going to merge the called variants we obtained in the [step 4](#4. Variant calling: low freq and mayority calling.) into the viral reference genome to obtain a consensus between our samples and the reference. For this purposewe are going to use [bgzip](http://www.htslib.org/doc/bgzip.html) and [bcftools](http://www.htslib.org/doc/bcftools.html).
 
 We run the [lablog](./08-mapping_consensus/lablog)
 ```
@@ -222,12 +223,12 @@ cat ../../../REFERENCES/NC_045512.2.fasta | bcftools consensus {sample_id}_NC_04
 ```
 
 ### 7. De novo assembly
-We are going to use the reads that did NOT map to the host reference genome to create a De Novo assembly. First we are going to use [Samtools]() and [Bedtools]() to transform the bam file with the unmapped reads into fastq files for the assembly. As the most accurate way to do this depends a lot on the viral genome, the number of reads etc., we are going to perform the De Novo assembly in three different ways:
-* Usind [Spades]():
+We are going to use the reads that did NOT map to the host reference genome to create a De Novo assembly. First we are going to use Samtools and [Bedtools](https://bedtools.readthedocs.io/en/latest/) to transform the bam file with the unmapped reads into fastq files for the assembly. As the most accurate way to do this depends a lot on the viral genome, the number of reads etc., we are going to perform the De Novo assembly in three different ways:
+* Usind [Spades](https://kbase.us/applist/apps/kb_SPAdes/run_SPAdes/release?gclid=Cj0KCQjwjcfzBRCHARIsAO-1_OqnS_JLZtmi_CUOht4Vrl12Rc9bjuTFZKopaxNVWAE6RNgkLjuCfLAaAhjeEALw_wcB):
   * Normal mode
   * Meta Spades mode
-* Using [Unicycler]()
-Finally, we are going to use [Quast]() to determine which assembly is the best for our analysis.
+* Using [Unicycler](https://github.com/rrwick/Unicycler)
+Finally, we are going to use [Quast](http://bioinf.spbau.ru/quast) to determine which assembly is the best for our analysis.
 
 First of all we are going to run the [lablog](./09-assembly/lablog) as allways:
 ```
@@ -275,9 +276,9 @@ quast.py --output-dir quast_report_2 -R ../../../REFERENCES/NC_045512.2.fasta -G
 ```
 
 ### 8. Contig ordering and draft generation.
-
+[ABACAS](http://abacas.sourceforge.net/index.html)
 ### 9. Alignment
-We are going to perorm a [BLAST]() to align the de novo assemblies to the reference viral genome.
+We are going to perorm a [BLAST](https://www.ncbi.nlm.nih.gov/books/NBK279690/) to align the de novo assemblies to the reference viral genome.
 
 First we run the [lablog](./10-blast/lablog)
 ```
@@ -299,7 +300,7 @@ rm *_blast.txt *_blast_filt.txt
 
 ### 10. Stats and graphs
 #### PlasmidID
-To graphically see how good or bad the assembly is compared to the reference, we are going to use a program we developped called [plasmidID](). Even if the program was created to map assemblies and plasmids, we can use this program to map and align the assemblies to the reference genome and obtain a plot.
+To graphically see how good or bad the assembly is compared to the reference, we are going to use a program we developped called [plasmidID](https://github.com/BU-ISCIII/plasmidID). Even if the program was created to map assemblies and plasmids, we can use this program to map and align the assemblies to the reference genome and obtain a plot.
 
 We are going to run the [lablog](./11-plasmidID/lablog) as allways:
 ```
