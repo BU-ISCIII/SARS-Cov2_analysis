@@ -278,7 +278,7 @@ quast.py --output-dir quast_report_2 -R ../../../REFERENCES/NC_045512.2.fasta -G
 ### 9. Stats and graphs
 To graphically see how good or bad the assembly is compared to the reference, we are going to use a program we developped called [plasmidID](). Even if the program was created to map assemblies and plasmids, we can use this program to map and align the assemblies to the reference genome and obtain a plot.
 
-We are going to run the [lablog](./10-plasmidID/lablog) as allways:
+We are going to run the [lablog](./11-plasmidID/lablog) as allways:
 ```
 bash lablog
 ```
