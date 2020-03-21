@@ -9,7 +9,7 @@ echo "set -e" >> samtools_mpileup.sh
 echo "set -x" >> samtools_mpileup.sh
 echo "infile=../samples_id.txt" >> samtools_mpileup.sh
 echo 'in=$(awk "NR==$SGE_TASK_ID" $infile)' >> samtools_mpileup.sh
-echo "samtools mpileup -A -d 20000 -Q 0 -f ../../../REFERENCES/NC_045512.2.fasta ../06-mapping_virus/\${in}/\${in}_sorted.bam > \${in}.pileup" >> samtools_mpileup.sh
+echo "samtools mpileup -A -d 20000 -Q 0 -f ../../../REFERENCES/NC_045512.2.fasta ../05-mapping_virus/\${in}/\${in}_sorted.bam > \${in}.pileup" >> samtools_mpileup.sh
 
 
 
