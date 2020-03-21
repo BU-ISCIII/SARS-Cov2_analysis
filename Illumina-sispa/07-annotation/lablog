@@ -1,0 +1,15 @@
+## Create database
+#cd /processing_Data/bioinformatics/pipelines/miniconda3/envs/virus_illumina_sispa/share/snpeff-4.3.1t-3
+#vim SnpEff.config ## Add new genome entry.
+## sars-cov-2.genome : SARScov2
+#mkdir -p data/genomes
+#mkdir -p data/sars-cov-2
+
+#cp ../../../REFERENCES/GCF_009858895.2_ASM985889v3_genomic.fna /processing_Data/bioinformatics/pipelines/miniconda3/envs/virus_illumina_sispa/share/snpeff-4.3.1t-3/data/genomes/sars-cov-2.fa
+#cp ../../../REFERENCES/GCF_009858895.2_ASM985889v3_genomic.gff /processing_Data/bioinformatics/pipelines/miniconda3/envs/virus_illumina_sispa/share/snpeff-4.3.1t-3/data/sars-cov-2/genes.gff
+
+#java -jar snpEff.jar build -gff3 -v sars-cov-2
+
+## Run snpeff
+cat ../samples_id.txt | xargs -I % echo "snpEff sars-cov-2 ../06-variant_calling/%.vcf > %.ann.vcf" > _00_snpEff.sh
+
