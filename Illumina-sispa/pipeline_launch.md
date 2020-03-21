@@ -186,7 +186,7 @@ bash lablog
 Now we are going to get three scripts:
 _00_mpileup.sh: varscan requires the generation of a mpileup file. This script will run this command for all the samples:
 ```
-samtools mpileup -A -d 20000 -Q 0 -f ../../../REFERENCES/NC_045512.2.fasta ../06-mapping_virus/${sample_id}/${sample_id}_sorted.bam > ${sample_id}.pileup
+samtools mpileup -A -d 20000 -Q 0 -f ../../../REFERENCES/NC_045512.2.fasta ../05-mapping_virus/${sample_id}/${sample_id}_sorted.bam > ${sample_id}.pileup
 ```
 _01_varscan.sh: varscan for low freq variants calling.
 ```
@@ -198,9 +198,30 @@ varscan mpileup2cns ./\${sample_id}.pileup --min-var-freq 0.8 --p-value 0.05 --v
 ```
 
 ### 5. Variant effect annotation
-[SnpEff](http://snpeff.sourceforge.net/)
+We are going to use [SnpEff](http://snpeff.sourceforge.net/) to annotate the variants called in the previous step. The first step is to create the SARS-Cov2 SnpEff database (included in the lablog but we have to do it by hand):
+```
+cd /processing_Data/bioinformatics/pipelines/miniconda3/envs/virus_illumina_sispa/share/snpeff-4.3.1t-3
+vim SnpEff.config ## Add new genome entry.
+  sars-cov-2.genome : SARScov2
+mkdir -p data/genomes
+mkdir -p data/sars-cov-2
+cp /path/to/reference/fasta/GCF_009858895.2_ASM985889v3_genomic.fna /path/to/miniconda3/envs/virus_illumina_sispa/share/snpeff-4.3.1t-3/data/genomes/sars-cov-2.fa
+cp /path/to/reference/fasta/GCF_009858895.2_ASM985889v3_genomic.gff /path/to/miniconda3/envs/virus_illumina_sispa/share/snpeff-4.3.1t-3/data/data/sars-cov-2/genes.gff
+java -jar snpEff.jar build -gff3 -v sars-cov-2
+cd /path/to/service/07-annotation/
+```
+Now we can do the same as always and run the [lablog](./07-annotation/lablog):
+```
+bash lablog
+```
+We are going to obtain the following script:
+_00_snpEff.sh: To annotate the vcf files:
+```
+snpEff sars-cov-2 ../06-variant_calling/${sample_id}.vcf > ${sample_id}.ann.vcf
+```
+
 ### 6. Genome sequence consensus
-To obtain the genome sequence consensus we are going to merge the called variants we obtained in the [step 4](#4. Variant calling: low freq and mayority calling.) into the viral reference genome to obtain a consensus between our samples and the reference. For this purposewe are going to use [bgzip](http://www.htslib.org/doc/bgzip.html) and [bcftools](http://www.htslib.org/doc/bcftools.html).
+To obtain the genome sequence consensus we are going to merge the called variants we obtained in the step 4 (Variant calling: low freq and mayority calling.) into the viral reference genome to obtain a consensus between our samples and the reference. For this purposewe are going to use [bgzip](http://www.htslib.org/doc/bgzip.html) and [bcftools](http://www.htslib.org/doc/bcftools.html).
 
 We run the [lablog](./08-mapping_consensus/lablog)
 ```
