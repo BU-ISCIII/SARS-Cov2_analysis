@@ -1,9 +1,0 @@
-## Blast results
-cat ../samples_id.txt | xargs -I % echo "qsub -V -b y -j y -cwd -N BLAST.% -q all.q -pe openmp 10 blastn -num_threads 10 -db ../../../REFERENCES/NC_045512.2.fasta -query ../05-assembly/%/%/%_scaffolds.fasta -outfmt \'6 stitle std slen qlen qcovs\' -out %_blast.txt" > _00_blast.sh
-
-## Filter and annot blast results
-cat ../samples_id.txt | xargs -I % echo "awk 'BEGIN{OFS=\"\\t\";FS=\"\\t\"}{print \$0,\$5/\$15,\$5/\$14}' %_blast.txt | awk 'BEGIN{OFS=\"\\t\";FS=\"\\t\"} \$15 > 200 && \$17 > 0.7 && \$1 !~ /phage/ {print \$0}' > %_blast_filt.txt; cat header %_blast_filt.txt > %_blast_filt_header.txt" > _01_filterBlast.sh
-
-echo "rm *_blast.txt *_blast_filt.txt" > _02_rmTmp.sh
-
-
