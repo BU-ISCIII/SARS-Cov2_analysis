@@ -279,13 +279,13 @@ _05_spades_assembly_meta.sh: Meta mode spades de novo assembly. This just works 
 ```
 _06_unicycler.sh: To run unicycler de novo assembly.
 ```
-unicycler -t 10 -o % -1 ../02-preprocessing/{sample_id}/{sample_id}_R1_filtered.fastq.gz -2 ../02-preprocessing/{sample_id}/{sample_id}_R2_filtered.fastq.gz
+unicycler -t 10 -o {sample_id} -1 ../02-preprocessing/{sample_id}/{sample_id}_R1_filtered.fastq.gz -2 ../02-preprocessing/{sample_id}/{sample_id}_R2_filtered.fastq.gz
 ```
 Now we are going to rename the output files from the programs:
 ```
-mv {sample_id}/{sample_id}/scaffolds.fasta {sample_id}/{sample_id}/%_scaffolds.fasta
-mv {sample_id}/{sample_id}_meta/scaffolds.fasta {sample_id}/{sample_id}_meta/%_meta_scaffolds.fasta
-mv %/assembly.fasta {sample_id}/{sample_id}_assembly.fasta
+mv {sample_id}/{sample_id}/scaffolds.fasta {sample_id}/{sample_id}/{sample_id}_scaffolds.fasta
+mv {sample_id}/{sample_id}_meta/scaffolds.fasta {sample_id}/{sample_id}_meta/{sample_id}_meta_scaffolds.fasta
+mv {sample_id}/assembly.fasta {sample_id}/{sample_id}_assembly.fasta
 ```
 _06_quast.sh: To run quast for comparing the different Spades scaffolds:
 ```
@@ -297,22 +297,36 @@ quast.py --output-dir quast_report_2 -R ../../../REFERENCES/NC_045512.2.fasta -G
 ```
 
 ### 8. Contig ordering and draft generation.
-[ABACAS](http://abacas.sourceforge.net/index.html)
+For reordering the contigs from the spades assembly and generate a draft genome assembly we are going to use [ABACAS](http://abacas.sourceforge.net/index.html).
+
+First we run the [lablog](10-abacas/lablog)
+```
+bash lablog
+```
+From which we are going to obtain the following script:
+_00_abacas.sh
+```
+mkdir -p {sample_id}
+cd {sample_id}
+abacas.pl -r ../../../../REFERENCES/NC_045512.2.fasta -q ../../09-assembly/{sample_id}/{sample_id}/{sample_id}_scaffolds.fasta -m -p nucmer -o {sample_id}_abacas
+cd ..
+```
+
 ### 9. Alignment
 We are going to perorm a [BLAST](https://www.ncbi.nlm.nih.gov/books/NBK279690/) to align the de novo assemblies to the reference viral genome.
 
-First we run the [lablog](./10-blast/lablog)
+First we run the [lablog](./11-blast/lablog)
 ```
 bash lablog
 ```
 This will create the following scripts:
 _00_blast.sh: Performs the alignment.
 ```
-blastn -num_threads 10 -db ../../../REFERENCES/NC_045512.2.fasta -query ../05-assembly/%/%/%_scaffolds.fasta -outfmt \'6 stitle std slen qlen qcovs\' -out %_blast.txt
+blastn -num_threads 10 -db ../../../REFERENCES/NC_045512.2.fasta -query ../05-assembly/{sample_id}/{sample_id}/{sample_id}_scaffolds.fasta -outfmt \'6 stitle std slen qlen qcovs\' -out {sample_id}_blast.txt
 ```
 _01_filterBlast.sh: Filters the BLAST output to only keep the significant results and parses the results to add headers.
 ```
-awk 'BEGIN{OFS=\"\\t\";FS=\"\\t\"}{print \$0,\$5/\$15,\$5/\$14}' %_blast.txt | awk 'BEGIN{OFS=\"\\t\";FS=\"\\t\"} \$15 > 200 && \$17 > 0.7 && \$1 !~ /phage/ {print \$0}' > %_blast_filt.txt; cat header %_blast_filt.txt > %_blast_filt_header.txt
+awk 'BEGIN{OFS=\"\\t\";FS=\"\\t\"}{print \$0,\$5/\$15,\$5/\$14}' {sample_id}_blast.txt | awk 'BEGIN{OFS=\"\\t\";FS=\"\\t\"} \$15 > 200 && \$17 > 0.7 && \$1 !~ /phage/ {print \$0}' > {sample_id}_blast_filt.txt; cat header {sample_id}_blast_filt.txt > {sample_id}_blast_filt_header.txt
 ```
 _02_rmTmp.sh: Removes the temporary files created in the previous step.
 ```
@@ -330,13 +344,13 @@ bash lablog
 From which we are going to obtain the following scripts:
 _01_plasmidID_spades.sh: To perform the plasmidID over the normal spades assemblies:
 ```
-plasmidID.sh -d ${directory}/../../../REFERENCES/NC_045512.2.fasta -s % -c ${directory}/../05-assembly/{sample_id}/{sample_id}/%_scaffolds.fasta -g SPADES --only-reconstruct -C 47 -S 47 -i 60 --no-trim -o ${directory}
+plasmidID.sh -d ${directory}/../../../REFERENCES/NC_045512.2.fasta -s {sample_id} -c ${directory}/../05-assembly/{sample_id}/{sample_id}/{sample_id}_scaffolds.fasta -g SPADES --only-reconstruct -C 47 -S 47 -i 60 --no-trim -o ${directory}
 ```
 _02_plasmidID_metaspades.sh: To perorm the plasmidID over the meta spades assemblies:
 ```
-plasmidID.sh -d ${directory}/../../../REFERENCES/NC_045512.2.fasta -s % -c ${directory}/../05-assembly/{sample_id}/{sample_id}_meta/%_scaffolds_meta.fasta -g META_SPADES --only-reconstruct -C 47 -S 47 -i 60 --no-trim -o ${directory}
+plasmidID.sh -d ${directory}/../../../REFERENCES/NC_045512.2.fasta -s {sample_id} -c ${directory}/../05-assembly/{sample_id}/{sample_id}_meta/{sample_id}_scaffolds_meta.fasta -g META_SPADES --only-reconstruct -C 47 -S 47 -i 60 --no-trim -o ${directory}
 ```
 _03_plasmidID_unicycler.sh: To perform plasmidID over the unicycler assemblies:
 ```
-plasmidID.sh -d ${directory}/../../../REFERENCES/NC_045512.2.fasta -s % -c ${directory}/../05-assembly/{sample_id}/{sample_id}_assembly.fasta -g UNICYCLER --only-reconstruct -C 47 -S 47 -i 60 --no-trim -o ${directory}
+plasmidID.sh -d ${directory}/../../../REFERENCES/NC_045512.2.fasta -s {sample_id} -c ${directory}/../05-assembly/{sample_id}/{sample_id}_assembly.fasta -g UNICYCLER --only-reconstruct -C 47 -S 47 -i 60 --no-trim -o ${directory}
 ```
