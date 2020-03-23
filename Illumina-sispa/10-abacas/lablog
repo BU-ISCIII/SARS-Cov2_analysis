@@ -1,0 +1,2 @@
+## Order contigs
+cat ../samples_id.txt | xargs -I % echo "mkdir %; cd %;qsub -V -b y -j y -cwd -N ABACAS -q all.q abacas.pl -r ../../../../REFERENCES/NC_045512.2.fasta -q ../../09-assembly/%/%/%_scaffolds.fasta -m -p nucmer -o %_abacas;cd .." > _00_abacas.sh
