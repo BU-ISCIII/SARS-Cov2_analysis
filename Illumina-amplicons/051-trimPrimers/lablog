@@ -1,0 +1,20 @@
+## bwa for ivartrim reads to virus genome
+echo "#$ -j y" > _00_ivartrim.sh
+echo "#$ -cwd" >> _00_ivartrim.sh
+echo "#$ -N ivartrim" >> _00_ivartrim.sh
+echo "#$ -pe openmp 10" >> _00_ivartrim.sh
+echo "#$ -q all.q" >> _00_ivartrim.sh
+echo "#$ -t 1-$(wc -l ../samples_id.txt | cut -d " " -f 1)" >> _00_ivartrim.sh
+echo 'infile=../samples_id.txt' >> _00_ivartrim.sh
+echo 'in=$(awk "NR==$SGE_TASK_ID" $infile)' >> _00_ivartrim.sh
+echo 'conda activate virus_illumina_sispa' >> _00_ivartrim.sh
+echo 'mkdir -p $in' >> _00_ivartrim.sh
+echo 'samtools view -b -F 4 ../06-mapping_virus/notrimmedprimer/$in/$in"_sorted.bam" > $in/$in"_onlymapped.bam"' >> _00_ivartrim.sh
+echo 'samtools index $in/$in"_onlymapped.bam"' >> _00_ivartrim.sh
+echo 'ivar trim -e -i $in/$in"_onlymapped.bam" -b ../../../REFERENCES/nCoV-2019.schemeMod.bed -p $in/$in"_primertrimmed" -q 15 -m 50 -s 4' >> _00_ivartrim.sh
+echo 'rm $in/$in"_onlymapped.bam"' >> _00_ivartrim.sh
+echo 'samtools sort -o $in/$in"_primertrimmed_sorted.bam" -O bam -T $in/$in $in/$in"_primertrimmed.bam"' >> _00_ivartrim.sh
+echo 'samtools index $in/$in"_primertrimmed_sorted.bam"' >> _00_ivartrim.sh
+cat ../samples_id.txt | xargs -I % echo "qsub -V -b y -o %/%_flagstat.txt -cwd -N FLAGSTATS -q all.q samtools flagstat %/%_primertrimmed_sorted.bam" > _01_flagstat.sh
+cat ../samples_id.txt | xargs -I % echo "qsub -V -b y -j y -cwd -N PICARDSTATS.% -q all.q -l h_vmem=40g java -jar /opt/picard-tools/picard-tools-1.140/picard.jar CollectWgsMetrics COVERAGE_CAP=1000000 I=%/%_primertrimmed_sorted.bam O=%/%.stats R=../../../REFERENCES/NC_045512.2.fasta" > _02_picadStats.sh
+echo 'find . -type f -name *.stats | while read in; do echo $'\n'; echo $'\n'; echo $in; cat $in | head -n8 | cut -f2,13 | tail -n5; done' > _03_read_picardstats.sh
