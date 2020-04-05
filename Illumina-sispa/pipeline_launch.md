@@ -190,11 +190,11 @@ samtools mpileup -A -d 20000 -Q 0 -f ../../../REFERENCES/NC_045512.2.fasta ../05
 ```
 _01_varscan.sh: varscan for low freq variants calling.
 ```
-varscan mpileup2cns ./\${sample_id}.pileup --min-var-freq 0.02 --p-value 0.99 --variants --output-vcf 1 > \${sample_id}.vcf
+varscan mpileup2cns ./{sample_id}.pileup --min-var-freq 0.02 --p-value 0.99 --variants --output-vcf 1 > {sample_id}.vcf
 ```
 _02_varscanMajority.sh
 ```
-varscan mpileup2cns ./\${sample_id}.pileup --min-var-freq 0.8 --p-value 0.05 --variants --output-vcf 1 > \${sample_id}_mayority.vcf
+varscan mpileup2cns ./{sample_id}.pileup --min-var-freq 0.8 --p-value 0.05 --variants --output-vcf 1 > {sample_id}_mayority.vcf
 ```
 
 ### 5. Variant effect annotation
