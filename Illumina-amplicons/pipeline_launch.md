@@ -93,12 +93,15 @@ cd {sample_id}; unzip \*.zip; cd ..
 * Mean phred quality < 20 in a 4 nucleotide window.
 * Read length < 50.
 
-We use our [lablog](./02-preprocessing/lablog) as usual:
+We are going to perform two different trimming, one for quality trimming and another one to remove amplicon primers. Thus we are having two different foderrs.
+
+We move to the quality trimming folder (notrimmedprimers) and we use our [lablog](./02-preprocessing/notrimmedprimers/lablog) as usual:
 ```
+cd notrimmedprimers
 bash lablog
 ```
 Then, we obtain the following scripts:
-_01_preprocess.sh: To perform the trimming of the raw data:
+_01_preprocess.sh: To perform the quality trimming of the raw data:
 ```
 mkdir {sample_id}
 java -jar <path/to/Trimmomatic/trimmomatic-0.33.jar PE -threads 10 -phred33 ../../00-reads/{sample_id}_R1.fastq.gz ../../00-reads/{sample_id}_R2.fastq.gz {sample_id}/{sample_id}_R1_filtered.fastq {sample_id}/{sample_id}_R1_unpaired.fastq {sample_id}/{sample_id}_R2_filtered.fastq {sample_id}/{sample_id}_R2_unpaired.fastq ILLUMINACLIP:/path/to/adapters/NexteraPE-PE.fa:2:30:10 SLIDINGWINDOW:4:20 MINLEN:50
@@ -106,6 +109,12 @@ java -jar <path/to/Trimmomatic/trimmomatic-0.33.jar PE -threads 10 -phred33 ../.
 And _02_pgzip.sh: To zip the trimmed fastq files:
 ```
 find . -name "*fastq" -exec pigz -p 5 {} \;
+```
+
+Then we move to the amplicon's primer trimming folder (trimmedprimers) and run the [lablog](./02-preprocessing/trimmedprimers/lablog):
+```
+cd trimmedprimers
+bash lablog
 ```
 
 #### FastQC of the trimmed reads
