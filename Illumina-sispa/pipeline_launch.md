@@ -117,7 +117,7 @@ This created two scripts:
 _01_trimfastqc.sh: which performs the quality control of the raw reads:
 ```
 mkdir {sample_id}
-fastqc -o {sample_id} --nogroup -t 8 -k 8 ../../02-preprocessing/{sample_id}_R1_filtered.fastq.gz ../../00-reads/{sample_id}_R2_filtered.fastq.gz
+fastqc -o {sample_id} --nogroup -t 8 -k 8 ../../02-preprocessing/{sample_id}_R1_filtered.fastq.gz ../../02-preprocessing/{sample_id}_R2_filtered.fastq.gz
 ```
 _01_unzip.sh: to unzip FastQC results:
 ```
