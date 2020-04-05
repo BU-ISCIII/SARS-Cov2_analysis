@@ -194,7 +194,7 @@ varscan mpileup2cns ./{sample_id}.pileup --min-var-freq 0.02 --p-value 0.99 --va
 ```
 _02_varscanMajority.sh
 ```
-varscan mpileup2cns ./{sample_id}.pileup --min-var-freq 0.8 --p-value 0.05 --variants --output-vcf 1 > {sample_id}_mayority.vcf
+varscan mpileup2cns ./{sample_id}.pileup --min-var-freq 0.8 --p-value 0.05 --variants --output-vcf 1 > {sample_id}_majority.vcf
 ```
 
 ### 5. Variant effect annotation
