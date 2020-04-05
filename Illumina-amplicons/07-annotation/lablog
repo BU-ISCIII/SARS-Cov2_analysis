@@ -1,15 +1,15 @@
 ## Create database
-#cd /processing_Data/bioinformatics/pipelines/miniconda3/envs/virus_illumina_sispa/share/snpeff-4.3.1t-3
+#cd /path/to/miniconda3/envs/virus_illumina_sispa/share/snpeff-4.3.1t-3
 #vim SnpEff.config ## Add new genome entry.
 ## sars-cov-2.genome : SARScov2
 #mkdir -p data/genomes
 #mkdir -p data/sars-cov-2
 
-#cp ../../../REFERENCES/GCF_009858895.2_ASM985889v3_genomic.fna /processing_Data/bioinformatics/pipelines/miniconda3/envs/virus_illumina_sispa/share/snpeff-4.3.1t-3/data/genomes/sars-cov-2.fa
-#cp ../../../REFERENCES/GCF_009858895.2_ASM985889v3_genomic.gff /processing_Data/bioinformatics/pipelines/miniconda3/envs/virus_illumina_sispa/share/snpeff-4.3.1t-3/data/sars-cov-2/genes.gff
+#cp path/to/REFERENCES/GCF_009858895.2_ASM985889v3_genomic.fna /path/to/miniconda3/envs/virus_illumina_sispa/share/snpeff-4.3.1t-3/data/genomes/sars-cov-2.fa
+#cp path/to/REFERENCES/GCF_009858895.2_ASM985889v3_genomic.gff /path/to/miniconda3/envs/virus_illumina_sispa/share/snpeff-4.3.1t-3/data/sars-cov-2/genes.gff
 
 #java -jar snpEff.jar build -gff3 -v sars-cov-2
 
 ## Run snpeff
-cat ../samples_id.txt | xargs -I % echo "snpEff sars-cov-2 ../06-variant_calling/trimmedprimersivar/%_mayority.vcf > %_majority.ann.vcf" > _00_snpEff.sh
+cat ../samples_id.txt | xargs -I % echo "snpEff sars-cov-2 ../06-variant_calling/%_mayority.vcf > %_majority.ann.vcf" > _00_snpEff.sh
 cat ../samples_id.txt | xargs -I % echo 'SnpSift extractFields -s "," -e "." ./%_majority.ann.vcf CHROM POS REF ALT "ANN[*].GENE" "ANN[*].GENEID" "ANN[*].IMPACT" "ANN[*].EFFECT" "ANN[*].FEATURE" "ANN[*].FEATUREID" "ANN[*].BIOTYPE" "ANN[*].RANK" "ANN[*].HGVS_C" "ANN[*].HGVS_P" "ANN[*].CDNA_POS" "ANN[*].CDNA_LEN" "ANN[*].CDS_POS" "ANN[*].CDS_LEN" "ANN[*].AA_POS" "ANN[*].AA_LEN" "ANN[*].DISTANCE" "EFF[*].EFFECT" "EFF[*].FUNCLASS" "EFF[*].CODON" "EFF[*].AA" "EFF[*].AA_LEN" > ./%_majority.ann.table.txt' > _01_snpsift.sh
