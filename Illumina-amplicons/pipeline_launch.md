@@ -1,6 +1,6 @@
 <img src="../BU_ISCIII_logo.png" alt="logo" width="300" align="right"/>
 
-# BU-ISCIII pipeline for  Sequence-Independent, Single-Primer Amplification (SISPA) + Illumina sequencing from SARS-Cov2
+# BU-ISCIII pipeline for  Illumina Amplicon sequencing from SARS-Cov2
 ## Introduction
 
 ## Methodology
@@ -65,7 +65,8 @@ You can find a description about how we launch or "semi-automatic" pipelines [he
 
 ## Software and dependencies installation
 We use a conda environment which provides all the sofware needed.
-## Pipeline steps
+## Pipeline steps:
+Amplicon analysis is a little bit different to SISPA analysis because we have to trim the amplicon primers. For the De Novo assembly we are going to trim the primers through sequence. For the consensus steps we are going to trim the primers by position.
 
 ### 1. Preprocessing
 #### FastQC
