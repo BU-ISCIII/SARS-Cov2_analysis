@@ -93,7 +93,7 @@ cd {sample_id}; unzip \*.zip; cd ..
 * Mean phred quality < 20 in a 4 nucleotide window.
 * Read length < 50.
 
-We are going to perform two different trimming, one for quality trimming and another one to remove amplicon primers. Thus we are having two different foderrs.
+We are going to perform two different trimming, one for quality trimming and another one to remove amplicon primers. The file to the fasta sequence is [](../data_resources/) Thus we are having two different folders.
 
 We move to the quality trimming folder (notrimmedprimers) and we use our [lablog](./02-preprocessing/notrimmedprimers/lablog) as usual:
 ```
@@ -116,6 +116,8 @@ Then we move to the amplicon's primer trimming folder (trimmedprimers) and run t
 cd trimmedprimers
 bash lablog
 ```
+This creates the following scripts:
+
 
 #### FastQC of the trimmed reads
 After the trimmomatic, we perform a fastqc process again to check the quality of the trimmed reads.
