@@ -1,0 +1,18 @@
+cat ../../samples_id.txt | xargs -I % echo "mkdir -p %; samtools view -b -f 4 ../../04-mapping_host/trimmedprimer/%/%_sorted.bam > %/%_unmapped.bam" > _01_unmapped.sh
+cat ../../samples_id.txt | xargs -I % echo "qsub -V -b y -j y -cwd -N SAMTOOLS_SORT.% -q all.q samtools sort -n %/%_unmapped.bam -o %/%_unmapped_qsorted.bam" > _02_name_sorted.sh
+cat ../../samples_id.txt | xargs -I % echo "qsub -V -b y -j y -cwd -N BAMTOFASTQ.% -q all.q bedtools bamtofastq -i %/%_unmapped_qsorted.bam -fq %/%_R1_unmapped.fastq -fq2 %/%_R2_unmapped.fastq" >> _03_bamtofastq.sh
+cat ../../samples_id.txt | xargs -I % echo "qsub -V -b y -j y -cwd -N SPADES_ASSEMBLY.% -q all.q -pe openmp 10 spades.py -t 10 -1 %/%_R1_unmapped.fastq -2 %/%_R2_unmapped.fastq -o %/%" > _04_spades_assembly.sh
+cat ../../samples_id.txt | xargs -I % echo "qsub -V -b y -j y -cwd -N SPADES_ASSEMBLY.% -q all.q -pe openmp 10 spades.py -t 10 -1 %/%_R1_unmapped.fastq -2 %/%_R2_unmapped.fastq --meta -o %/%_meta" > _05_spades_assembly_meta.sh
+
+cat ../../samples_id.txt | xargs -I % echo "qsub -V -b y -j y -cwd -N UNICYCLER.% -q all.q -pe openmp 10 unicycler -t 10 -o % -1 %/%_R1_unmapped.fastq -2 %/%_R2_unmapped.fastq" > _06_unicycler.sh
+
+## Change names
+cat ../../samples_id.txt | xargs -I % mv %/%/scaffolds.fasta %/%/%_scaffolds.fasta
+cat ../../samples_id.txt | xargs -I % mv %/%_meta/scaffolds.fasta %/%_meta/%_meta_scaffolds.fasta
+cat ../../samples_id.txt | xargs -I % mv %/assembly.fasta %/%_assembly.fasta
+
+#quast
+
+
+echo "mkdir -p quast_report; qsub -V -b y -j y -cwd -N QUAST -q all.q -pe orte 10 quast.py --output-dir quast_report -R ../../../../REFERENCES/NC_045512.2.fasta -G ../../../../REFERENCES/NC_045512.2.gff -t 10 $(find . -maxdepth 3 -name "*_scaffolds.fasta" | grep -v "broken" | tr '\n' ' ')" > _06_quast.sh
+echo "mkdir -p quast_report_2; qsub -V -b y -j y -cwd -N QUAST -q all.q -pe orte 10 quast.py --output-dir quast_report_2 -R ../../../../REFERENCES/NC_045512.2.fasta -G ../../../../REFERENCES/NC_045512.2.gff -t 10 $(find . -maxdepth 2 -name "*assembly.fasta" | tr '\n' ' ')" > _07_quast.sh

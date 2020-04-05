@@ -11,5 +11,5 @@
 #java -jar snpEff.jar build -gff3 -v sars-cov-2
 
 ## Run snpeff
-cat ../samples_id.txt | xargs -I % echo "snpEff sars-cov-2 ../06-variant_calling/trimmedprimersivar/%_mayority.vcf > %_majority.ann.vcf" > _00_snpEff.sh
+cat ../samples_id.txt | xargs -I % echo "snpEff sars-cov-2 ../08-variant_calling/trimmedprimersivar/%_mayority.vcf > %_majority.ann.vcf" > _00_snpEff.sh
 cat ../samples_id.txt | xargs -I % echo 'SnpSift extractFields -s "," -e "." ./%_majority.ann.vcf CHROM POS REF ALT "ANN[*].GENE" "ANN[*].GENEID" "ANN[*].IMPACT" "ANN[*].EFFECT" "ANN[*].FEATURE" "ANN[*].FEATUREID" "ANN[*].BIOTYPE" "ANN[*].RANK" "ANN[*].HGVS_C" "ANN[*].HGVS_P" "ANN[*].CDNA_POS" "ANN[*].CDNA_LEN" "ANN[*].CDS_POS" "ANN[*].CDS_LEN" "ANN[*].AA_POS" "ANN[*].AA_LEN" "ANN[*].DISTANCE" "EFF[*].EFFECT" "EFF[*].FUNCLASS" "EFF[*].CODON" "EFF[*].AA" "EFF[*].AA_LEN" > ./%_majority.ann.table.txt' > _01_snpsift.sh

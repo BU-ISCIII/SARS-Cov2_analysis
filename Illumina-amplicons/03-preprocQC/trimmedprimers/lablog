@@ -1,0 +1,5 @@
+echo '#!/bin/bash' > _01_trimfastqc.sh
+cat ../../samples_id.txt | while read in; do echo "mkdir $in;qsub -V -b y -j y -pe openmp 8 -cwd -N FASTQCTRIM.$in -q all.q fastqc -o $in --nogroup -t 8 -k 8 ../../02-preprocessing/trimmedprimers/$in/"$in"_R1_filtered.fastq.gz ../../02-preprocessing/trimmedprimers/$in/"$in"_R2_filtered.fastq.gz"; done >> _01_trimfastqc.sh
+cat ../../samples_id.txt | xargs -I % echo "cd % ; unzip \*.zip; cd .." > _01_unzip.sh
+
+

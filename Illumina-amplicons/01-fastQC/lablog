@@ -1,0 +1,2 @@
+cat ../samples_id.txt | while read in; do echo "mkdir $in;qsub -V -b y -j y -cwd -N FASTQC.$in -q all.q fastqc -o $in --nogroup -t 8 -k 8 ../../00-reads/"$in"_R1.fastq.gz ../../00-reads/"$in"_R2.fastq.gz"; done >> _01_rawfastqc.sh
+cat ../samples_id.txt | xargs -I % echo "cd % ; unzip \*.zip; cd .." > _01_unzip.sh

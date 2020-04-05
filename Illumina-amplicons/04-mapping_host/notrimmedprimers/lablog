@@ -1,0 +1,19 @@
+## bwa for mapping reads to virus genome
+
+echo "#$ -j y" >> _00_mapping.sh
+echo "#$ -cwd" >> _00_mapping.sh
+echo "#$ -N MAPPING" >> _00_mapping.sh
+echo "#$ -pe openmp 10" >> _00_mapping.sh
+echo "#$ -t 1-$(wc -l ../../samples_id.txt | cut -d " " -f 1)" >> _00_mapping.sh
+echo "#$ -q all.q" >> _00_mapping.sh
+echo 'infile=../../samples_id.txt' >> _00_mapping.sh
+echo 'in=$(awk "NR==$SGE_TASK_ID" $infile)' >> _00_mapping.sh
+echo "module load bwa-0.7.12" >> _00_mapping.sh
+echo "module load samtools/samtools-1.2" >> _00_mapping.sh
+echo 'mkdir -p $in' >> _00_mapping.sh
+echo 'bwa mem -t 10 /processing_Data/bioinformatics/references/eukaria/homo_sapiens/hg38/UCSC/genome/hg38.fullAnalysisSet.fa ../../02-preprocessing/notrimmedprimers/$in/$in"_R1_filtered.fastq.gz" ../../02-preprocessing/notrimmedprimers/$in/$in"_R2_filtered.fastq.gz" > $in/$in".sam"' >> _00_mapping.sh
+echo 'samtools view -b $in/$in.sam > $in/$in.bam' >> _00_mapping.sh
+echo 'samtools sort -o $in/$in"_sorted.bam" -O bam -T $in/$in $in/$in.bam' >> _00_mapping.sh
+echo 'samtools index $in/$in"_sorted.bam"' >> _00_mapping.sh
+cat ../../samples_id.txt | xargs -I % echo "qsub -V -b y -o %/%_flagstat.txt -cwd -N FLAGSTATS -q all.q samtools flagstat %/%_sorted.bam" > _01_flagstat.sh
+cat ../../samples_id.txt | xargs -I % echo "qsub -V -b y -j y -cwd -N PICARDSTATS.% -q all.q -l h_vmem=40g java -jar /opt/picard-tools/picard-tools-1.140/picard.jar CollectWgsMetrics COVERAGE_CAP=1000000 I=%/%_sorted.bam O=%/%.stats R=/processing_Data/bioinformatics/references/eukaria/homo_sapiens/hg38/UCSC/genome/hg38.fullAnalysisSet.fa" > _02_picadStats.sh

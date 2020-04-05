@@ -1,0 +1,39 @@
+
+echo "#$ -V" >> _00_samtools_mpileup.sh
+echo "#$ -b y" >> _00_samtools_mpileup.sh
+echo "#$ -j y" >> _00_samtools_mpileup.sh
+echo "#$ -cwd" >> _00_samtools_mpileup.sh
+echo "#$ -N _00_samtools_mpileup" >> _00_samtools_mpileup.sh
+echo "#$ -q all.q" >> _00_samtools_mpileup.sh
+echo "#$ -t 1-$(wc -l ../../samples_id.txt | cut -d " " -f 1)" >> _00_samtools_mpileup.sh
+echo "set -e" >> _00_samtools_mpileup.sh
+echo "set -x" >> _00_samtools_mpileup.sh
+echo "infile=../../samples_id.txt" >> _00_samtools_mpileup.sh
+echo 'in=$(awk "NR==$SGE_TASK_ID" $infile)' >> _00_samtools_mpileup.sh
+echo "samtools mpileup -A -d 20000 -Q 0 -f ../../../../REFERENCES/NC_045512.2.fasta ../../06-mapping_virus/notrimmedprimer/\${in}/\${in}_sorted.bam > \${in}.pileup" >> _00_samtools_mpileup.sh
+
+echo "#$ -V" >> _01_varscan.sh
+echo "#$ -b y" >> _01_varscan.sh
+echo "#$ -j y" >> _01_varscan.sh
+echo "#$ -cwd" >> _01_varscan.sh
+echo "#$ -N varscan" >> _01_varscan.sh
+echo "#$ -q all.q" >> _01_varscan.sh
+echo "#$ -t 1-$(wc -l ../../samples_id.txt | cut -d " " -f 1)" >> _01_varscan.sh
+echo "set -e" >> _01_varscan.sh
+echo "set -x" >> _01_varscan.sh
+echo "infile=../../samples_id.txt" >> _01_varscan.sh
+echo 'in=$(awk "NR==$SGE_TASK_ID" $infile)' >> _01_varscan.sh
+echo "varscan mpileup2cns ./\${in}.pileup --min-var-freq 0.02 --p-value 0.99 --variants --output-vcf 1 > \${in}.vcf" >> _01_varscan.sh
+
+echo "#$ -V" >> _02_varscanMajority.sh
+echo "#$ -b y" >> _02_varscanMajority.sh
+echo "#$ -j y" >> _02_varscanMajority.sh
+echo "#$ -cwd" >> _02_varscanMajority.sh
+echo "#$ -N varscanMayority" >> _02_varscanMajority.sh
+echo "#$ -q all.q" >> _02_varscanMajority.sh
+echo "#$ -t 1-$(wc -l ../../samples_id.txt | cut -d " " -f 1)" >> _02_varscanMajority.sh
+echo "set -e" >> _02_varscanMajority.sh
+echo "set -x" >> _02_varscanMajority.sh
+echo "infile=../../samples_id.txt" >> _02_varscanMajority.sh
+echo 'in=$(awk "NR==$SGE_TASK_ID" $infile)' >> _02_varscanMajority.sh
+echo "varscan mpileup2cns ./\${in}.pileup --min-var-freq 0.8 --p-value 0.05 --variants --output-vcf 1 > \${in}_mayority.vcf" >> _02_varscanMajority.sh
