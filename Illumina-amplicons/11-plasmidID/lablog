@@ -1,0 +1,9 @@
+directory=$PWD
+plasmidID="/processing_Data/bioinformatics/pipelines/plasmidID"
+#export PATH=$PATH:${plasmidID}
+#export PATH=$PATH:${plasmidID}/bin
+#module load Trimmomatic-0.33 spades/spades-3.8.0 Perl/perl-5.26.2 blast-2.2.26 bedtools2/bedtools2-2.25.0 bowtie/bowtie2-2.2.4 samtools/samtools-1.2 prokka/prokka-1.12 cdhit-4.6.6 circos/circos-0.69.3
+
+cat ../samples_id.txt | xargs -I % echo "qsub -V -b y -j y -cwd -N PLASMIDID_SPADES.% -q all.q bash plasmidID.sh -d ${directory}/../../../REFERENCES/NC_045512.2.fasta -s % -c ${directory}/../05-assembly/%/%/%_scaffolds.fasta -g SPADES --only-reconstruct -C 47 -S 47 -i 60 --no-trim -o ${directory}" > _01_plasmidID_spades.sh
+cat ../samples_id.txt | xargs -I % echo "qsub -V -b y -j y -cwd -N PLASMIDID_METASPADES.% -q all.q bash plasmidID.sh -d ${directory}/../../../REFERENCES/NC_045512.2.fasta -s % -c ${directory}/../05-assembly/%/%_meta/%_meta_scaffolds.fasta -g META_SPADES --only-reconstruct -C 47 -S 47 -i 60 --no-trim -o ${directory}" > _02_plasmidID_metaspades.sh
+cat ../samples_id.txt | xargs -I % echo "qsub -V -b y -j y -cwd -N PLASMIDID_UNICYCLER.% -q all.q bash plasmidID.sh -d ${directory}/../../../REFERENCES/NC_045512.2.fasta -s % -c ${directory}/../05-assembly/%/%_assembly.fasta -g UNICYCLER --only-reconstruct -C 47 -S 47 -i 60 --no-trim -o ${directory}" > _03_plasmidID_unicycler.sh

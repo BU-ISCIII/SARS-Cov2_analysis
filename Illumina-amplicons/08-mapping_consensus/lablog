@@ -1,0 +1,24 @@
+
+cat ../../samples_id.txt | while read in; do echo "mkdir ${in}_NC_045512; bgzip -c ../../08-variant_calling/notrimmedprimers/${in}_mayority.vcf > ${in}_NC_045512/${in}_NC_045512.vcf.gz";done > _00_bgzipvcf.sh
+
+cat ../../samples_id.txt | while read in; do echo "qsub -V -b y -j y -cwd -N BCFTOOLS_INDEX -q all.q bcftools index ${in}_NC_045512/${in}_NC_045512.vcf.gz";done > _01_bcftools_index.sh
+
+echo "#$ -j y" >> _02_bcftools_consensus.sh
+echo "#$ -cwd" >> _02_bcftools_consensus.sh
+echo "#$ -V" >> _02_bcftools_consensus.sh
+echo "#$ -N BCFTOOLS_CONSENSUS" >> _02_bcftools_consensus.sh
+echo "#$ -q all.q" >> _02_bcftools_consensus.sh
+echo "#$ -t 1-$(wc -l ../../samples_id.txt | cut -d ' ' -f 1)" >> _02_bcftools_consensus.sh
+echo 'infile=../../samples_id.txt' >> _02_bcftools_consensus.sh
+echo 'in=$(awk "NR==$SGE_TASK_ID" $infile)' >> _02_bcftools_consensus.sh
+echo 'cat ../../../../REFERENCES/NC_045512.2.fasta | bcftools consensus ${in}_NC_045512/${in}_NC_045512.vcf.gz > ${in}_NC_045512/${in}_NC_045512_consensus.fasta' >> _02_bcftools_consensus.sh
+
+cat ../../samples_id.txt | xargs -I % echo "bedtools genomecov -bga -ibam ../../06-mapping_virus/notrimmedprimer/%/%_sorted.bam -g ../../../../REFERENCES/NC_045512.2.fasta | awk '\$4 < 20' | bedtools merge > ./%_NC_045512/%_NC_045512_bed4mask.bed" > _03_maskLowCov1.sh
+
+cat ../../samples_id.txt | xargs -I % echo "bedtools maskfasta -fi ./%_NC_045512/%_NC_045512_consensus.fasta -bed ./%_NC_045512/%_NC_045512_bed4mask.bed -fo %_NC_045512/%_NC_045512_consensus_masked.fasta" > _04_maskLowCov2.sh
+
+#Change name consensus
+#cat ../../samples_id.txt | xargs -I % sed -i 's/NC_045512.2/%/g' ./%_NC_045512/%_NC_045512_consensus_masked.fasta
+
+#COUNT VARIANTS
+#find . -type f -name '*.vcf.gz' | while read in; do echo $in; zcat $in | sed '/^#/ d' | wc -l; done
