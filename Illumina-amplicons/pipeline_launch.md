@@ -120,7 +120,7 @@ This creates the following scripts:
 
 _01_preprocess.sh: To perform the primers trimming of the raw data:
 ```
-java -jar /path/to/Trimmomatic-0.33/trimmomatic-0.33.jar PE -threads 10 -phred33 ../../00-reads/"$in"_R1.fastq.gz ../../00-reads/"$in"_R2.fastq.gz $in/"$in"_R1_filtered.fastq $in/"$in"_R1_unpaired.fastq $in/"$in"_R2_filtered.fastq $in/"$in"_R2_unpaired.fastq ILLUMINACLIP:../REFERENCES/nCoV-2019.artic.primers.fasta:2:30:10 SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /path/to/Trimmomatic-0.33/trimmomatic-0.33.jar PE -threads 10 -phred33 ../../00-reads/"{sample_id}"_R1.fastq.gz ../../00-reads/"{sample_id}"_R2.fastq.gz {sample_id}/"{sample_id}"_R1_filtered.fastq {sample_id}/"{sample_id}"_R1_unpaired.fastq {sample_id}/"{sample_id}"_R2_filtered.fastq {sample_id}/"{sample_id}"_R2_unpaired.fastq ILLUMINACLIP:../REFERENCES/nCoV-2019.artic.primers.fasta:2:30:10 SLIDINGWINDOW:4:20 MINLEN:50
 ```
 And _02_pgzip.sh: To zip the trimmed fastq files:
 ```
@@ -214,7 +214,7 @@ java -jar /path/to/picard-tools-1.140/picard.jar CollectWgsMetrics COVERAGE_CAP=
 ```
 
 
-### 3. Mapping against virus
+### 3.1. Mapping against virus
 Once we have mapped the samples to the host, we are going to map the trimmed reads to the reference viral genome. In this care we are going to use the NC_045512.2, Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1, complete genome. We are going to use the same programs we used for the mapping to the host.
 
 In this case we are just interested in map the non primer trimmed reads to the virus.
@@ -227,10 +227,10 @@ We will obtain the following scripts:
 _00_mapping.sh: Which is going to perform the mapping of the trimmed reads against the viral reference genome:
 ```
 mkdir {sample_id}
-bwa mem -t 10 ../../../REFERENCES/NC_045512.2.fasta ../02-preprocessing/notrimprimers/{sample_id}/{sample_id}"_R1_filtered.fastq.gz" ../02-preprocessing/notrimprimers/{sample_id}/{sample_id}"_R2_filtered.fastq.gz" > {sample_id}/{sample_id}".sam"
+bwa mem -t 10 ../../../REFERENCES/NC_045512.2.fasta ../02-preprocessing/notrimprimers/{sample_id}/{sample_id}_R1_filtered.fastq.gz ../02-preprocessing/notrimprimers/{sample_id}/{sample_id}_R2_filtered.fastq.gz" > {sample_id}/{sample_id}.sam
 samtools view -b {sample_id}/{sample_id}.sam > {sample_id}/{sample_id}.bam
-samtools sort -o {sample_id}/{sample_id}"_sorted.bam" -O bam -T {sample_id}/{sample_id} {sample_id}/{sample_id}.bam
-samtools index {sample_id}/{sample_id}"_sorted.bam"
+samtools sort -o {sample_id}/{sample_id}_sorted.bam -O bam -T {sample_id}/{sample_id} {sample_id}/{sample_id}.bam
+samtools index {sample_id}/{sample_id}_sorted.bam
 ```
 _01_flagstat.sh: which is going to perform stats of the mapping through samtools.
 ```
@@ -240,6 +240,35 @@ _02_picadStats.sh: Is going to perform stats about the mapping through Picard.
 ```
 java -jar /path/to/picard-tools-1.140/picard.jar CollectWgsMetrics COVERAGE_CAP=1000000 I={sample_id}/{sample_id}_sorted.bam O={sample_id}/{sample_id}.stats R=../../../REFERENCES/NC_045512.2.fasta
 ```
+
+### 3.2. Primers prositional trimming with iVar.
+[iVar](http://gensoft.pasteur.fr/docs/ivar/1.0/manualpage.html) uses primer positions supplied in a BED file to soft clip primer sequences from an aligned, sorted and indexed BAM file. iVar is used to positionally remove the primers of the non trimmed primer sequences.
+
+We run the [lablog](./051-trimPrimers/lablog)
+```
+bash lablog
+```
+
+This creates the follwing scripts:
+ _00_ivartrim.sh: Primers trimming
+ ```
+mkdir -p {sample_id}
+samtools view -b -F 4 ../06-mapping_virus/notrimmedprimer/{sample_id}/{sample_id}_sorted.bam > {sample_id}/{sample_id}_onlymapped.bam
+samtools index {sample_id}/{sample_id}_onlymapped.bam
+ivar trim -e -i {sample_id}/{sample_id}_onlymapped.bam -b ../../../REFERENCES/nCoV-2019.schemeMod.bed -p {sample_id}/{sample_id}_primertrimmed -q 15 -m 50 -s 4
+rm {sample_id}/{sample_id}_onlymapped.bam
+samtools sort -o {sample_id}/{sample_id}_primertrimmed_sorted.bam -O bam -T {sample_id}/{sample_id} {sample_id}/{sample_id}"_primertrimmed.bam
+samtools index {sample_id}/{sample_id}_primertrimmed_sorted.bam
+ ```
+ _01_flagstat.sh: which is going to perform stats of the mapping through samtools.
+ ```
+ samtools flagstat {sample_id}/{sample_id}_primertrimmed_sorted.bam
+ ```
+ _02_picadStats.sh: Is going to perform stats about the mapping through Picard.
+ ```
+ java -jar /path/to/picard-tools-1.140/picard.jar CollectWgsMetrics COVERAGE_CAP=1000000 I={sample_id}/{sample_id}_primertrimmed_sorted.bam O={sample_id}/{sample_id}.stats R=../../../REFERENCES/NC_045512.2.fasta
+ ```
+
 
 ### 4. Variant calling: low freq and mayority calling.
 [VarScan](http://varscan.sourceforge.net/) is used for variant calling and two different calls are made:
