@@ -282,15 +282,16 @@ bash lablog
 Now we are going to get three scripts:
 _00_mpileup.sh: varscan requires the generation of a mpileup file. This script will run this command for all the samples:
 ```
-samtools mpileup -A -d 20000 -Q 0 -f ../../../REFERENCES/NC_045512.2.fasta ../05-mapping_virus/${sample_id}/${sample_id}_sorted.bam > ${sample_id}.pileup
+mkdir -p {sample_id}
+samtools mpileup -A -d 20000 -Q 0 -f ../../../REFERENCES/NC_045512.2.fasta ../051-trimPrimers/{sample_id}/{sample_id}_primertrimmed_sorted.bam > {sample_id}/{sample_id}.pileup
 ```
 _01_varscan.sh: varscan for low freq variants calling.
 ```
-varscan mpileup2cns ./\${sample_id}.pileup --min-var-freq 0.02 --p-value 0.99 --variants --output-vcf 1 > \${sample_id}.vcf
+varscan mpileup2cns {sample_id}/{sample_id}.pileup --min-var-freq 0.02 --p-value 0.99 --variants --output-vcf 1 > {sample_id}/{sample_id}.vcf
 ```
 _02_varscanMajority.sh
 ```
-varscan mpileup2cns ./\${sample_id}.pileup --min-var-freq 0.8 --p-value 0.05 --variants --output-vcf 1 > \${sample_id}_mayority.vcf
+varscan mpileup2cns {sample_id}/{sample_id}.pileup --min-var-freq 0.8 --p-value 0.05 --variants --output-vcf 1 > {sample_id}/{sample_id}_majority.vcf
 ```
 
 ### 5. Variant effect annotation
@@ -306,6 +307,7 @@ cp /path/to/reference/fasta/GCF_009858895.2_ASM985889v3_genomic.gff /path/to/min
 java -jar snpEff.jar build -gff3 -v sars-cov-2
 cd /path/to/service/07-annotation/
 ```
+We are going to annotate both low frequency variants and majority variants.
 Now we can do the same as always and run the [lablog](./07-annotation/lablog):
 ```
 bash lablog
@@ -313,7 +315,15 @@ bash lablog
 We are going to obtain the following script:
 _00_snpEff.sh: To annotate the vcf files:
 ```
-snpEff sars-cov-2 ../06-variant_calling/${sample_id}.vcf > ${sample_id}.ann.vcf
+mkdir -p {sample_id}
+snpEff sars-cov-2 ../06-variant_calling/{sample_id}_majority.vcf > ${sample_id}_majority.ann.vcf
+snpEff sars-cov-2 ../06-variant_calling/{sample_id}.vcf > ${sample_id}_lowfreq.ann.vcf
+
+```
+_01_snpsift.sh: Create summary tables:
+```
+SnpSift extractFields -s "," -e "." {sample_id}/{sample_id}_majority.ann.vcf CHROM POS REF ALT "ANN[*].GENE" "ANN[*].GENEID" "ANN[*].IMPACT" "ANN[*].EFFECT" "ANN[*].FEATURE" "ANN[*].FEATUREID" "ANN[*].BIOTYPE" "ANN[*].RANK" "ANN[*].HGVS_C" "ANN[*].HGVS_P" "ANN[*].CDNA_POS" "ANN[*].CDNA_LEN" "ANN[*].CDS_POS" "ANN[*].CDS_LEN" "ANN[*].AA_POS" "ANN[*].AA_LEN" "ANN[*].DISTANCE" "EFF[*].EFFECT" "EFF[*].FUNCLASS" "EFF[*].CODON" "EFF[*].AA" "EFF[*].AA_LEN" > {sample_id}/{sample_id}_lowfreq.ann.table.txt
+SnpSift extractFields -s "," -e "." {sample_id}/{sample_id}_lowfreq.ann.vcf CHROM POS REF ALT "ANN[*].GENE" "ANN[*].GENEID" "ANN[*].IMPACT" "ANN[*].EFFECT" "ANN[*].FEATURE" "ANN[*].FEATUREID" "ANN[*].BIOTYPE" "ANN[*].RANK" "ANN[*].HGVS_C" "ANN[*].HGVS_P" "ANN[*].CDNA_POS" "ANN[*].CDNA_LEN" "ANN[*].CDS_POS" "ANN[*].CDS_LEN" "ANN[*].AA_POS" "ANN[*].AA_LEN" "ANN[*].DISTANCE" "EFF[*].EFFECT" "EFF[*].FUNCLASS" "EFF[*].CODON" "EFF[*].AA" "EFF[*].AA_LEN" > {sample_id}/{sample_id}_majority.ann.table.txt
 ```
 
 ### 6. Genome sequence consensus
