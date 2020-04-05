@@ -10,7 +10,7 @@ echo "set -e" >> _00_samtools_mpileup.sh
 echo "set -x" >> _00_samtools_mpileup.sh
 echo "infile=../../samples_id.txt" >> _00_samtools_mpileup.sh
 echo 'in=$(awk "NR==$SGE_TASK_ID" $infile)' >> _00_samtools_mpileup.sh
-echo "samtools mpileup -A -d 20000 -Q 0 -f ../../../../REFERENCES/NC_045512.2.fasta ../../06-mapping_virus/notrimmedprimer/\${in}/\${in}_sorted.bam > \${in}.pileup" >> _00_samtools_mpileup.sh
+echo "samtools mpileup -A -d 20000 -Q 0 -f ../../../../REFERENCES/NC_045512.2.fasta ../../051-trimPrimers/\${in}/\${in}_primertrimmed_sorted.bam > \${in}.pileup" >> _00_samtools_mpileup.sh
 
 echo "#$ -V" >> _01_varscan.sh
 echo "#$ -b y" >> _01_varscan.sh
