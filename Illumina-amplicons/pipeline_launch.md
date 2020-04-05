@@ -93,7 +93,7 @@ cd {sample_id}; unzip \*.zip; cd ..
 * Mean phred quality < 20 in a 4 nucleotide window.
 * Read length < 50.
 
-We are going to perform two different trimming, one for quality trimming and another one to remove amplicon primers. The file to the fasta sequence is [](../data_resources/) Thus we are having two different folders.
+We are going to perform two different trimming steps, one for quality trimming and another one to remove amplicon's primers. The file with the primers sequence is [nCoV-2019.artic.primers.fasta](../data_resources/nCoV-2019.artic.primers.fasta). Thus we are having two different folders.
 
 We move to the quality trimming folder (notrimmedprimers) and we use our [lablog](./02-preprocessing/notrimmedprimers/lablog) as usual:
 ```
@@ -104,7 +104,7 @@ Then, we obtain the following scripts:
 _01_preprocess.sh: To perform the quality trimming of the raw data:
 ```
 mkdir {sample_id}
-java -jar <path/to/Trimmomatic/trimmomatic-0.33.jar PE -threads 10 -phred33 ../../00-reads/{sample_id}_R1.fastq.gz ../../00-reads/{sample_id}_R2.fastq.gz {sample_id}/{sample_id}_R1_filtered.fastq {sample_id}/{sample_id}_R1_unpaired.fastq {sample_id}/{sample_id}_R2_filtered.fastq {sample_id}/{sample_id}_R2_unpaired.fastq ILLUMINACLIP:/path/to/adapters/NexteraPE-PE.fa:2:30:10 SLIDINGWINDOW:4:20 MINLEN:50
+java -jar /path/to/Trimmomatic/trimmomatic-0.33.jar PE -threads 10 -phred33 ../../00-reads/{sample_id}_R1.fastq.gz ../../00-reads/{sample_id}_R2.fastq.gz {sample_id}/{sample_id}_R1_filtered.fastq {sample_id}/{sample_id}_R1_unpaired.fastq {sample_id}/{sample_id}_R2_filtered.fastq {sample_id}/{sample_id}_R2_unpaired.fastq ILLUMINACLIP:/path/to/adapters/NexteraPE-PE.fa:2:30:10 SLIDINGWINDOW:4:20 MINLEN:50
 ```
 And _02_pgzip.sh: To zip the trimmed fastq files:
 ```
@@ -118,18 +118,44 @@ bash lablog
 ```
 This creates the following scripts:
 
+_01_preprocess.sh: To perform the primers trimming of the raw data:
+```
+java -jar /path/to/Trimmomatic-0.33/trimmomatic-0.33.jar PE -threads 10 -phred33 ../../00-reads/"$in"_R1.fastq.gz ../../00-reads/"$in"_R2.fastq.gz $in/"$in"_R1_filtered.fastq $in/"$in"_R1_unpaired.fastq $in/"$in"_R2_filtered.fastq $in/"$in"_R2_unpaired.fastq ILLUMINACLIP:../REFERENCES/nCoV-2019.artic.primers.fasta:2:30:10 SLIDINGWINDOW:4:20 MINLEN:50
+```
+And _02_pgzip.sh: To zip the trimmed fastq files:
+```
+find . -name "*fastq" -exec pigz -p 5 {} \;
+```
 
 #### FastQC of the trimmed reads
-After the trimmomatic, we perform a fastqc process again to check the quality of the trimmed reads.
-We use our [lablog](./03-preprocQC/lablog) as previously done:
+After the trimmomatic, we perform a fastqc process again to check the quality of the trimmed reads. We are going to perform this quality step for the two trimming steps, thus having two quality folders.
+
+We move to the non trimmed primers folder and use our [lablog](./03-preprocQC/notrimmedprimers/lablog) as previously done:
 ```
+cd notrimmedprimers
 bash lablog
 ```
 This created two scripts:
 _01_trimfastqc.sh: which performs the quality control of the raw reads:
 ```
 mkdir {sample_id}
-fastqc -o {sample_id} --nogroup -t 8 -k 8 ../../02-preprocessing/{sample_id}_R1_filtered.fastq.gz ../../00-reads/{sample_id}_R2_filtered.fastq.gz
+fastqc -o {sample_id} --nogroup -t 8 -k 8 ../../02-preprocessing/notrimmedprimers/{sample_id}_R1_filtered.fastq.gz ../../02-preprocessing/notrimmedprimers/{sample_id}_R2_filtered.fastq.gz
+```
+_01_unzip.sh: to unzip FastQC results:
+```
+cd {sample_id}; unzip \*.zip; cd ..
+```
+
+Then we move to the folder for the quality of the primer trimmed reads and run the [lablog](./03-preprocQC/trimmedprimers/lablog):
+```
+cd trimmedprimers
+bash lablog
+```
+We obtain the following scripts:
+_01_trimfastqc.sh: which performs the quality control of the raw reads:
+```
+mkdir {sample_id}
+fastqc -o {sample_id} --nogroup -t 8 -k 8 ../../02-preprocessing/trimmedprimers/{sample_id}_R1_filtered.fastq.gz ../../02-preprocessing/trimmedprimers/{sample_id}_R2_filtered.fastq.gz
 ```
 _01_unzip.sh: to unzip FastQC results:
 ```
@@ -139,15 +165,18 @@ cd {sample_id}; unzip \*.zip; cd ..
 ### 2. Mapping against host
 After performing the preliminary quality controls and trimming, we map the trimmed reads against the host's reference genome. In this case we are going to use the human genome hg38 from the UCSC. For the mapping we use [bwa](http://bio-bwa.sourceforge.net/bwa.shtml) or Burrows-Wheeler Aligner, which is designed for mapping low-divergent sequence reads against reference genomes. The result alignment files are further processed with [SAMtools](http://www.htslib.org/doc/samtools.html), from which sam format is converted to bam, sorted and an index .bai is generated. Finally, Samtools flagstats and [PicardStats](https://broadinstitute.github.io/picard/) are used to obtain statistics over the mapping process.
 
-As for the previous steps, we run the [lablog](./04-mapping_host/lablog)
+As for the previous steps we are going to perform two mapping steps, one for the non trimmed primers, and another one for the trimmed primers.
+
+We move to the folder of the non trimmed primers and we run the [lablog](./04-mapping_host/notrimmedprimers/lablog)
 ```
+cd notrimmedprimers
 bash lablog
 ```
 From which the following scripts are generated:
 _00_mapping.sh: Which is going to perform the mapping of the trimmed reads against the host reference genome:
 ```
 mkdir {sample_id}
-bwa mem -t 10 /path/to/host/reference/genome/hg38.fullAnalysisSet.fa ../02-preprocessing/{sample_id}/{sample_id}_R1_filtered.fastq.gz ../02-preprocessing/{sample_id}/{sample_id}_R2_filtered.fastq.gz > {sample_id}/{sample_id}.sam
+bwa mem -t 10 /path/to/host/reference/genome/hg38.fullAnalysisSet.fa ../02-preprocessing/{sample_id}/notrimmedprimers/{sample_id}_R1_filtered.fastq.gz ../02-preprocessing/notrimmedprimers/{sample_id}/{sample_id}_R2_filtered.fastq.gz > {sample_id}/{sample_id}.sam
 samtools view -b {sample_id}/{sample_id}.sam > {sample_id}/{sample_id}.bam
 samtools sort -o {sample_id}/{sample_id}_sorted.bam -O bam -T {sample_id}/{sample_id} {sample_id}/{sample_id}.bam
 samtools index {sample_id}/{sample_id}_sorted.bam
@@ -161,8 +190,34 @@ _02_picadStats.sh: Is going to perform stats about the mapping through Picard.
 java -jar /path/to/picard-tools-1.140/picard.jar CollectWgsMetrics COVERAGE_CAP=1000000 I={sample_id}/{sample_id}_sorted.bam O={sample_id}/{sample_id}.stats R=/path/to/host/reference/genome/hg38.fullAnalysisSet.fa
 ```
 
+Then we move to the folder of the trimmed primers and we run the [lablog](./04-mapping_host/trimmedprimers/lablog)
+```
+cd trimmedprimers
+bash lablog
+```
+From which the following scripts are generated:
+_00_mapping.sh: Which is going to perform the mapping of the trimmed reads against the host reference genome:
+```
+mkdir {sample_id}
+bwa mem -t 10 /path/to/host/reference/genome/hg38.fullAnalysisSet.fa ../02-preprocessing/{sample_id}/trimmedprimers/{sample_id}_R1_filtered.fastq.gz ../02-preprocessing/trimmedprimers/{sample_id}/{sample_id}_R2_filtered.fastq.gz > {sample_id}/{sample_id}.sam
+samtools view -b {sample_id}/{sample_id}.sam > {sample_id}/{sample_id}.bam
+samtools sort -o {sample_id}/{sample_id}_sorted.bam -O bam -T {sample_id}/{sample_id} {sample_id}/{sample_id}.bam
+samtools index {sample_id}/{sample_id}_sorted.bam
+```
+_01_flagstat.sh: which is going to perform stats of the mapping through samtools.
+```
+samtools flagstat {sample_id}/{sample_id}_sorted.bam
+```
+_02_picadStats.sh: Is going to perform stats about the mapping through Picard.
+```
+java -jar /path/to/picard-tools-1.140/picard.jar CollectWgsMetrics COVERAGE_CAP=1000000 I={sample_id}/{sample_id}_sorted.bam O={sample_id}/{sample_id}.stats R=/path/to/host/reference/genome/hg38.fullAnalysisSet.fa
+```
+
+
 ### 3. Mapping against virus
 Once we have mapped the samples to the host, we are going to map the trimmed reads to the reference viral genome. In this care we are going to use the NC_045512.2, Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1, complete genome. We are going to use the same programs we used for the mapping to the host.
+
+In this case we are just interested in map the non primer trimmed reads to the virus.
 
 We run the [lablog](./05-mapping_virus/lablog)
 ```
@@ -172,7 +227,7 @@ We will obtain the following scripts:
 _00_mapping.sh: Which is going to perform the mapping of the trimmed reads against the viral reference genome:
 ```
 mkdir {sample_id}
-bwa mem -t 10 ../../../REFERENCES/NC_045512.2.fasta ../02-preprocessing/{sample_id}/{sample_id}"_R1_filtered.fastq.gz" ../02-preprocessing/{sample_id}/{sample_id}"_R2_filtered.fastq.gz" > {sample_id}/{sample_id}".sam"
+bwa mem -t 10 ../../../REFERENCES/NC_045512.2.fasta ../02-preprocessing/notrimprimers/{sample_id}/{sample_id}"_R1_filtered.fastq.gz" ../02-preprocessing/notrimprimers/{sample_id}/{sample_id}"_R2_filtered.fastq.gz" > {sample_id}/{sample_id}".sam"
 samtools view -b {sample_id}/{sample_id}.sam > {sample_id}/{sample_id}.bam
 samtools sort -o {sample_id}/{sample_id}"_sorted.bam" -O bam -T {sample_id}/{sample_id} {sample_id}/{sample_id}.bam
 samtools index {sample_id}/{sample_id}"_sorted.bam"
