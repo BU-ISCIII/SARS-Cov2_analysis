@@ -241,7 +241,7 @@ _02_picadStats.sh: Is going to perform stats about the mapping through Picard.
 java -jar /path/to/picard-tools-1.140/picard.jar CollectWgsMetrics COVERAGE_CAP=1000000 I={sample_id}/{sample_id}_sorted.bam O={sample_id}/{sample_id}.stats R=../../../REFERENCES/NC_045512.2.fasta
 ```
 
-### 3.2. Primers prositional trimming with iVar.
+### 3.2. Primers positional trimming with iVar.
 [iVar](http://gensoft.pasteur.fr/docs/ivar/1.0/manualpage.html) uses primer positions supplied in a BED file to soft clip primer sequences from an aligned, sorted and indexed BAM file. iVar is used to positionally remove the primers of the non trimmed primer sequences.
 
 We run the [lablog](./051-trimPrimers/lablog)
@@ -337,16 +337,16 @@ bash lablog
 We obtain the following scripts:
 _00_bgzipvcf.sh: To zip the vcf file previously obtained:
 ```
-mkdir {sample_id}_NC_045512
-bgzip -c ../06-variant_calling/{sample_id}.vcf > {sample_id}_NC_045512/{sample_id}_NC_045512.vcf.gz
+mkdir {sample_id}_{viral_reference}
+bgzip -c ../06-variant_calling/{sample_id}.vcf > {sample_id}_{viral_reference}/{sample_id}_{viral_reference}.vcf.gz
 ```
 _01_bcftools_index.sh: For indexinf the ziped vcf file.
 ```
-bcftools index {sample_id}_NC_045512/{sample_id}_NC_045512.vcf.gz
+bcftools index {sample_id}_{viral_reference}/{sample_id}_{viral_reference}.vcf.gz
 ```
 _02_bcftools_consensus.sh
 ```
-cat ../../../REFERENCES/NC_045512.2.fasta | bcftools consensus {sample_id}_NC_045512/{sample_id}_NC_045512.vcf.gz > {sample_id}_NC_045512/{sample_id}_NC_045512_consensus.fasta
+cat ../../../REFERENCES/NC_045512.2.fasta | bcftools consensus {sample_id}_{viral_reference}/{sample_id}_{viral_reference}.vcf.gz > {sample_id}_{viral_reference}/{sample_id}_{viral_reference}_consensus.fasta
 ```
 
 ### 7. De novo assembly
