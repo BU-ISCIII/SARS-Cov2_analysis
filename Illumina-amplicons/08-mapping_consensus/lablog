@@ -13,7 +13,7 @@ echo 'infile=../../samples_id.txt' >> _02_bcftools_consensus.sh
 echo 'in=$(awk "NR==$SGE_TASK_ID" $infile)' >> _02_bcftools_consensus.sh
 echo 'cat ../../../../REFERENCES/NC_045512.2.fasta | bcftools consensus ${in}_NC_045512/${in}_NC_045512.vcf.gz > ${in}_NC_045512/${in}_NC_045512_consensus.fasta' >> _02_bcftools_consensus.sh
 
-cat ../../samples_id.txt | xargs -I % echo "bedtools genomecov -bga -ibam ../../06-mapping_virus/notrimmedprimer/%/%_sorted.bam -g ../../../../REFERENCES/NC_045512.2.fasta | awk '\$4 < 20' | bedtools merge > ./%_NC_045512/%_NC_045512_bed4mask.bed" > _03_maskLowCov1.sh
+cat ../../samples_id.txt | xargs -I % echo "bedtools genomecov -bga -ibam ../051-trimPrimers/%/%_primertrimmed_sorted.bam -g ../../../REFERENCES/NC_045512.2.fasta | awk '\$4 < 20' | bedtools merge > ./%_NC_045512/%_NC_045512_bed4mask.bed" > _03_maskLowCov1.sh
 
 cat ../../samples_id.txt | xargs -I % echo "bedtools maskfasta -fi ./%_NC_045512/%_NC_045512_consensus.fasta -bed ./%_NC_045512/%_NC_045512_bed4mask.bed -fo %_NC_045512/%_NC_045512_consensus_masked.fasta" > _04_maskLowCov2.sh
 
