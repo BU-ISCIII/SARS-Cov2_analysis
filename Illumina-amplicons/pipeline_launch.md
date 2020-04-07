@@ -373,7 +373,7 @@ This will create the following scripts:
 _01_unmapped.sh: To select the reads that did not map to the host reference genome.
 ```
 mkdir {sample_id}
-samtools view -b -f 4 ../04-mapping_host/{sample_id}/{sample_id}_sorted.bam > {sample_id}/{sample_id}_unmapped.bam
+samtools view -b -f 4 ../04-mapping_host/trimmedprimer/{sample_id}/{sample_id}_sorted.bam > {sample_id}/{sample_id}_unmapped.bam
 ```
 _02_name_sorted.sh: To sort the unmapped bam by name:
 ```
@@ -389,11 +389,11 @@ spades.py -t 10 -1 {sample_id}/{sample_id}_R1_unmapped.fastq -2 {sample_id}/{sam
 ```
 _05_spades_assembly_meta.sh: Meta mode spades de novo assembly. This just works for pair-end data. If you have single-end data skip this step.
 ```
-/path/to/spades-3.7.1/bin/spades.py -t 10 -1 {sample_id}/{sample_id}_R1_unmapped.fastq -2 {sample_id}/{sample_id}_R2_unmapped.fastq -o {sample_id}/{sample_id}_meta
+/path/to/spades-3.7.1/bin/spades.py -t 10 -1 {sample_id}/{sample_id}_R1_unmapped.fastq -2 {sample_id}/{sample_id}_R2_unmapped.fastq --meta -o {sample_id}/{sample_id}_meta
 ```
 _06_unicycler.sh: To run unicycler de novo assembly.
 ```
-unicycler -t 10 -o {sample_id} -1 ../02-preprocessing/{sample_id}/{sample_id}_R1_filtered.fastq.gz -2 ../02-preprocessing/{sample_id}/{sample_id}_R2_filtered.fastq.gz
+unicycler -t 10 -o {sample_id} -1 {sample_id}/{sample_id}_R1_unmapped.fastq -2 {sample_id}/{sample_id}_R2_unmapped.fastq
 ```
 Now we are going to rename the output files from the programs:
 ```
