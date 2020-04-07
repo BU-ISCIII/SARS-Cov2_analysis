@@ -413,7 +413,7 @@ quast.py --output-dir quast_report_2 -R ../../../REFERENCES/NC_045512.2.fasta -G
 ### 8. Contig ordering and draft generation.
 For reordering the contigs from the spades assembly and generate a draft genome assembly we are going to use [ABACAS](http://abacas.sourceforge.net/index.html).
 
-First we run the [lablog](10-abacas/lablog)
+First we run the [lablog](./10-abacas/lablog)
 ```
 bash lablog
 ```
@@ -422,7 +422,7 @@ _00_abacas.sh
 ```
 mkdir -p {sample_id}
 cd {sample_id}
-abacas.pl -r ../../../../REFERENCES/NC_045512.2.fasta -q ../../09-assembly/{sample_id}/{sample_id}/{sample_id}_scaffolds.fasta -m -p nucmer -o {sample_id}_abacas
+abacas.pl -r ../../../REFERENCES/NC_045512.2.fasta -q ../../09-assembly/{sample_id}/{sample_id}/{sample_id}_scaffolds.fasta -m -p nucmer -o {sample_id}_abacas
 cd ..
 ```
 
