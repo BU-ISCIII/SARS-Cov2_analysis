@@ -427,20 +427,36 @@ cd ..
 ```
 
 ### 9. Alignment
-We are going to perorm a [BLAST](https://www.ncbi.nlm.nih.gov/books/NBK279690/) to align the de novo assemblies to the reference viral genome.
+We are going to perorm a [BLAST](https://www.ncbi.nlm.nih.gov/books/NBK279690/) to align the de novo assemblies to the reference viral genome. We are going to blast all the different assemblies. You need to have [header](./11-blast/header) file in the same folder for the script to work.
 
 First we run the [lablog](./11-blast/lablog)
 ```
 bash lablog
 ```
 This will create the following scripts:
-_00_blast.sh: Performs the alignment.
+_00_blast.sh: Performs the alignment of the Spades scaffolds.
 ```
-blastn -num_threads 10 -db ../../../REFERENCES/NC_045512.2.fasta -query ../05-assembly/{sample_id}/{sample_id}/{sample_id}_scaffolds.fasta -outfmt \'6 stitle std slen qlen qcovs\' -out {sample_id}_blast.txt
+blastn -num_threads 10 -db ../../../REFERENCES/NC_045512.2.fasta -query ../09-assembly/{sample_id}/{sample_id}/{sample_id}_scaffolds.fasta -outfmt \'6 stitle std slen qlen qcovs\' -out {sample_id}_blast.txt
 ```
-_01_filterBlast.sh: Filters the BLAST output to only keep the significant results and parses the results to add headers.
+_00_blast_meta.sh: Performs the alignment of the MetaSpades scaffolds.
+```
+blastn -num_threads 10 -db ../../../REFERENCES/NC_045512.2.fasta -query ../09-assembly/{sample_id}/{sample_id}_meta/{sample_id}_meta_scaffolds.fasta -outfmt \'6 stitle std slen qlen qcovs\' -out {sample_id}_meta_blast.txt
+```
+_00_blast_unicycler.sh: Performs the alignment of the Unicycler assembly.
+```
+blastn -num_threads 10 -db ../../../REFERENCES/NC_045512.2.fasta -query ../09-assembly/{sample_id}/{sample_id}/{sample_id}_assembly.fasta -outfmt \'6 stitle std slen qlen qcovs\' -out {sample_id}_unicycler_blast.txt
+```
+_01_filterBlast.sh: Filters the Spades BLAST output to only keep the significant results and parses the results to add headers.
 ```
 awk 'BEGIN{OFS=\"\\t\";FS=\"\\t\"}{print \$0,\$5/\$15,\$5/\$14}' {sample_id}_blast.txt | awk 'BEGIN{OFS=\"\\t\";FS=\"\\t\"} \$15 > 200 && \$17 > 0.7 && \$1 !~ /phage/ {print \$0}' > {sample_id}_blast_filt.txt; cat header {sample_id}_blast_filt.txt > {sample_id}_blast_filt_header.txt
+```
+_01_filterBlast_meta.sh: Filters the MetaSpades BLAST output to only keep the significant results and parses the results to add headers.
+```
+awk 'BEGIN{OFS=\"\\t\";FS=\"\\t\"}{print \$0,\$5/\$15,\$5/\$14}' {sample_id}_meta_blast.txt | awk 'BEGIN{OFS=\"\\t\";FS=\"\\t\"} \$15 > 200 && \$17 > 0.7 && \$1 !~ /phage/ {print \$0}' > {sample_id}_meta_blast_filt.txt; cat header {sample_id}_meta_blast_filt.txt > {sample_id}_meta_blast_filt_header.txt
+```
+_01_filterBlast_unicycler.sh: Filters the Unicycler BLAST output to only keep the significant results and parses the results to add headers.
+```
+awk 'BEGIN{OFS=\"\\t\";FS=\"\\t\"}{print \$0,\$5/\$15,\$5/\$14}' {sample_id}_unicycler_blast.txt | awk 'BEGIN{OFS=\"\\t\";FS=\"\\t\"} \$15 > 200 && \$17 > 0.7 && \$1 !~ /phage/ {print \$0}' > {sample_id}_unicycler_blast_filt.txt; cat header {sample_id}_unicycler_blast_filt.txt > {sample_id}_unicycler_blast_filt_header.txt
 ```
 _02_rmTmp.sh: Removes the temporary files created in the previous step.
 ```
