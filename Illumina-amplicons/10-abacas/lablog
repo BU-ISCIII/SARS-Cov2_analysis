@@ -1,9 +1,3 @@
 ## Order contigs
 # conda activate chromosomer
-cat ../samples_id.txt | xargs -I % echo "mkdir %; cd %;qsub -V -b y -j y -cwd -N ABACAS -q all.q abacas.pl -r ../../../../REFERENCES/NC_045512.2.fasta -q ../../05-assembly/%/%_meta/%_meta_scaffolds.fasta -m -p nucmer -o %_abacas;cd .." > _00_abacas.sh
-
-## Align contigs against reference genome.
-#blastn -query demo_fragments.fa -db demo_chromosomes.fa -outfmt 6 -out fragment_alignments.txt
-# Run chromosomer for draft genome generation.
-#chromosomer fragmentmap fragment_alignments.txt 100 demo_fragments.length fragment_map.txt
-#chromosomer assemble fragment_map.txt demo_fragments.fa assembled_chromosomes.fa
+cat ../samples_id.txt | xargs -I % echo "mkdir %; cd %;qsub -V -b y -j y -cwd -N ABACAS -q all.q abacas.pl -r ../../../REFERENCES/NC_045512.2.fasta -q ../09-assembly/%/%/%_scaffolds.fasta -m -p nucmer -o %_abacas;cd .." > _00_abacas.sh
