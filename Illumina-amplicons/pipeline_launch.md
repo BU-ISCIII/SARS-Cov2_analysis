@@ -337,16 +337,24 @@ bash lablog
 We obtain the following scripts:
 _00_bgzipvcf.sh: To zip the vcf file previously obtained:
 ```
-mkdir {sample_id}_{viral_reference}
-bgzip -c ../06-variant_calling/{sample_id}.vcf > {sample_id}_{viral_reference}/{sample_id}_{viral_reference}.vcf.gz
+mkdir {sample_id}_NC_045512.2
+bgzip -c ../06-variant_calling/{sample_id}/{sample_id}_majority.vcf > {sample_id}_NC_045512.2/{sample_id}_NC_045512.2.vcf.gz
 ```
-_01_bcftools_index.sh: For indexinf the ziped vcf file.
+_01_bcftools_index.sh: For indexing the ziped vcf file.
 ```
-bcftools index {sample_id}_{viral_reference}/{sample_id}_{viral_reference}.vcf.gz
+bcftools index {sample_id}_NC_045512.2/{sample_id}_NC_045512.2.vcf.gz
 ```
-_02_bcftools_consensus.sh
+_02_bcftools_consensus.sh: Create the consensus genome
 ```
-cat ../../../REFERENCES/NC_045512.2.fasta | bcftools consensus {sample_id}_{viral_reference}/{sample_id}_{viral_reference}.vcf.gz > {sample_id}_{viral_reference}/{sample_id}_{viral_reference}_consensus.fasta
+cat ../../../REFERENCES/NC_045512.2.fasta | bcftools consensus {sample_id}_NC_045512.2/{sample_id}_NC_045512.2.vcf.gz > {sample_id}_NC_045512.2/{sample_id}_NC_045512.2_consensus.fasta
+```
+_03_maskLowCov1.sh: Compute genome coverage
+```
+bedtools genomecov -bga -ibam ../051-trimPrimers/{sample_id}/{sample_id}_primertrimmed_sorted.bam -g ../../../REFERENCES/NC_045512.2.fasta | awk '\$4 < 20' | bedtools merge > ./{sample_id}_NC_045512/{sample_id}_NC_045512_bed4mask.bed
+```
+_04_maskLowCov2.sh: Mask low coverage regions
+```
+bedtools maskfasta -fi ./{sample_id}_NC_045512/{sample_id}_NC_045512_consensus.fasta -bed ./{sample_id}_NC_045512/{sample_id}_NC_045512_bed4mask.bed -fo {sample_id}_NC_045512/{sample_id}_NC_045512_consensus_masked.fasta
 ```
 
 ### 7. De novo assembly
