@@ -184,12 +184,6 @@ d3_template = """
                 pointer-events: none;
             }
 
-            .line {
-            fill: none;
-            stroke: #6F257F;
-            stroke-width: 2px;
-            }
-            
             .amplicon:hover {
                 fill: brown;
             }
@@ -324,6 +318,7 @@ d3_template = """
                 const xAxisLabel = 'Position';
                 const yValue = d => d.FREQ;
                 const yAxisLabel = 'Frequency';
+                const y2Value = d => d.DP;
                 const y2AxisLabel = 'Coverage';
                 const circleRadius = 4;
                 const strokeWidth = 1.5;
@@ -470,24 +465,41 @@ d3_template = """
                     .text(d => d.name + "\\n" + d.start + ":" + d.end);
                 
                 //Create line
-                
                 const line = d3.line()
                     .x(function(d) { return xScale(d.POS); })
                     .y(function(d) { return yScalecov(d.DP); });
                 
                 g.append("path")
-                    .datum(covdata)
+                    .data([covdata])
                     .attr("class", "line")
+                    .attr("fill", "none")
+                    .attr("stroke", "#6F257F")
                     .attr("opacity", 0.8)
                     .attr("d", line);
                 
+                //Uncovered red dots
+                
+                uncoveredData = covdata.filter(d => d.DP === 0);
+                
+                g.selectAll('.red.dot')
+                    .data(uncoveredData)
+                    .enter()
+                    .append('circle')
+                    .attr('fill-opacity', 1)
+                    .attr('fill', 'red')
+                    .attr('stroke-width', 0)
+                    .attr('cy', d => yScalecov(y2Value(d)))
+                    .attr('cx', d => xScale(xValue(d)))
+                    .attr('r', 1);
+                
+                    
                 // Define the div for the frequency tooltip
                 var div = d3.select("body").append("div")
                     .attr("class", "tooltip")
                     .style("opacity", 0);
                 
                 //Create scatter
-                g.selectAll('circle')
+                g.selectAll('circle.dot')
                     .data(data)
                     .enter()
                     .append('circle')
