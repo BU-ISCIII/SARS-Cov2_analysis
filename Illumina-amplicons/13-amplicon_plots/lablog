@@ -1,0 +1,13 @@
+echo "#$ -j y" >> _00_bedtools_coverage.sh
+echo "#$ -cwd" >> _00_bedtools_coverage.sh
+echo "#$ -N BEDTOOLS_COVERAGE" >> _00_bedtools_coverage.sh
+echo "#$ -q all.q" >> _00_bedtools_coverage.sh
+echo "#$ -t 1-$(wc -l ../../samples_id.txt | cut -d " " -f 1)" >> _00_bedtools_coverage.sh
+echo 'infile=../../samples_id.txt' >> _00_bedtools_coverage.sh
+echo 'in=$(awk "NR==$SGE_TASK_ID" $infile)' >> _00_bedtools_coverage.sh
+echo "module load bedtools2/bedtools2-2.26.0" >> _00_bedtools_coverage.sh
+echo 'mkdir -p $in'>>  _00_bedtools_coverage.sh
+
+echo 'bedtools coverage -a ../../../../REFERENCES/nCoV-2019.ampliconsMod_V3.bed -b ../variants/bowtie2/$in".sorted.bam" > $in/$in"_coverage.txt"' >> _00_bedtools_coverage.sh
+#conda activate rbase_v.3.6
+echo "Rscript create_plots.R" >> _01_create_plots.sh
